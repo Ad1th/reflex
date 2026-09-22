@@ -1,0 +1,13 @@
+{
+  "intro": "This is Reflex: A.I. agents that get faster every time they do something twice. Browser agents call an L.L.M. for every single click, and the fiftieth time they do a task, they're exactly as slow as the first. Reflex gives them muscle memory, built on Moss.",
+  "run1_start": "Run one. The agent has never seen this booking app. Every step is an L.L.M. call, around a second each.",
+  "run1_end": "Eleven L.L.M. calls. But every step it took is now stored as a reflex in Moss: the page state, the action, and where it should land.",
+  "run2_start": "Now a different person, on a different day and time. Before every step, the agent asks Moss: have I been exactly here before? That lookup takes about a millisecond.",
+  "run2_end": "Ten out of ten steps replayed as reflexes, with no L.L.M. calls. The only model call left is reading the instruction.",
+  "run3_start": "Different wording, and a different meeting type. Names, days and times are abstracted into slots, so the reflexes still transfer.",
+  "run4_start": "Now some chaos. The whole layout is shuffled. Reflexes target elements by role and label, not position, so they still fire.",
+  "run5_start": "Harder chaos: the labels are renamed. The remembered buttons no longer exist, so those reflexes are rejected before acting, and the L.L.M. takes over for just those steps.",
+  "run5_end": "Nothing broke. Amber marks a reflex that was safely rejected, and the new steps were learned on the spot.",
+  "run6_start": "Run it again, and it has already relearned. All reflexes.",
+  "moss": "Why Moss? This lookup sits on the hot path of every single step, so it has to cost less than a click. Moss's in-process index answers in under a millisecond across twenty thousand reflexes, about twelve times faster than a brute force scan, and new reflexes are searchable instantly. Reflex: agents that stop thinking about things they've already figured out."
+}

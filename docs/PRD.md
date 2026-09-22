@@ -27,13 +27,13 @@ Reflex is a step-level reflex layer that sits between an agent and its LLM.
 ## 4. Requirements
 | # | Requirement | Status |
 |---|---|---|
-| R1 | Agent completes a multi-step booking flow from a natural-language instruction | |
-| R2 | A second run with different details completes with ≥80% of steps served by reflex | |
-| R3 | Reflex lookup p50 ≤ 5 ms at a library size of ≥ 20k | |
-| R4 | Shuffled layout (same labels, different order): reflexes still fire | |
-| R5 | Renamed labels: affected steps are rejected before acting and fall back to the LLM; the next run is reflex again | |
-| R6 | Every step is visible in the UI with its source (LLM / reflex / fallback) and timings | |
-| R7 | Honest benchmark: Moss vs brute-force cosine at the current library size | |
+| R1 | Agent completes a multi-step booking flow from a natural-language instruction | ✅ 10-step flow (type → day → time → 5 form actions → review → confirm) |
+| R2 | A second run with different details completes with ≥80% of steps served by reflex | ✅ 10/10 steps reflex; 11 LLM calls → 1 (parse only) |
+| R3 | Reflex lookup p50 ≤ 5 ms at a library size of ≥ 20k | ✅ Moss p50 0.6–0.8 ms @ 20,016 reflexes (brute force 9.3–9.9 ms) |
+| R4 | Shuffled layout (same labels, different order): reflexes still fire | ✅ 10/10 reflex on shuffled layout |
+| R5 | Renamed labels: affected steps are rejected before acting and fall back to the LLM; the next run is reflex again | ✅ renamed steps rejected pre-action (target_missing / form-state gate) → LLM; next run 10/10 reflex |
+| R6 | Every step is visible in the UI with its source (LLM / reflex / fallback) and timings | ✅ mission-control timeline with 🧠/⚡/↩ badges, per-step ms, learning curve |
+| R7 | Honest benchmark: Moss vs brute-force cosine at the current library size | ✅ /api/reflex/bench + in-app “Why Moss” panel |
 
 ## 5. Why Moss
 - **Latency budget.** A reflex replaces an LLM call, so the lookup must cost roughly the same as a DOM action. That rules out a network round trip to a hosted vector DB on every step.
@@ -43,5 +43,21 @@ Reflex is a step-level reflex layer that sits between an agent and its LLM.
 ## 6. Non-goals (hackathon scope)
 Real third-party sites, authentication, multi-tab tasks, and cross-user sharing of learned reflexes (architecture supports it via `pushIndex`; not demoed).
 
-## 7. Metrics (measured, see README)
-To be filled from `scripts/e2e.ts`.
+## 7. Metrics (measured on localhost, M3 MacBook Air, Groq gpt-oss-120b)
+| Run | Condition | Agent time | LLM calls | Reflex steps |
+|---|---|---|---|---|
+| 1 | cold | 11.5–22 s (Groq-dependent) | 11 | 0/10 |
+| 2 | new person/day/time | 1.3–3 s | 1 | 10/10 |
+| 3 | rephrased + other meeting type | 1.3 s | 1 | 10/10 |
+| 4 | shuffled layout | 0.9 s | 1 | 10/10 |
+| 5 | renamed labels | 10 s | 7 | 4/10 (1 safe fallback) |
+| 6 | renamed again | 1.05 s | 1 | 10/10 |
+
+- Reflex step: ~10–20 ms end to end (embed ~6 ms, Moss ~1–3 ms, act + settle).
+- LLM step: 0.5–3 s.
+- Speedup, warm vs cold: 9–13× on agent time.
+
+## 8. Success criteria for a pilot
+- ≥70% of steps served by reflex after 3 runs of a workflow.
+- Zero wrong actions from reflexes, enforced by the gates. This must be measured on real sites.
+- LLM cost per repeated task reduced by more than 80%.
