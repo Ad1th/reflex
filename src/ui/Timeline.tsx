@@ -41,7 +41,7 @@ function Row({
 }) {
   return (
     <li
-      className={`rx-row grid grid-cols-[22px_92px_1fr_auto] items-center gap-3 border-b border-rule-soft px-3 py-[7px] ${
+      className={`rx-row grid grid-cols-[22px_92px_1fr_auto] items-center gap-3 border-b border-rule-soft px-3 py-[5px] ${
         flash ? "rx-flash" : ""
       }`}
     >

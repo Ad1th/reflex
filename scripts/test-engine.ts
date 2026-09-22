@@ -63,6 +63,7 @@ async function main() {
   const r2 = await learn({ flow, stateKey: kName, action: aEmail, postSignature: post });
   const deduped = r2.id === r1.id;
   console.log(`learned r1=${r1.id.slice(0, 8)} r2=${r2.id.slice(0, 8)} ${deduped ? "(r2 DEDUPED onto r1!)" : "(distinct)"}`);
+  assert.ok(!deduped, "different form states must not dedupe");
   assert.deepEqual(aName, { kind: "type", role: "textbox", label: "Full name", text: "{name}" });
 
   // Same state with a different person → same templated key → exact match.
@@ -76,7 +77,11 @@ async function main() {
   console.log(`  replay action: ${describeAction(fillAction(lk.match.reflex.action, other))}`);
   const lk2 = await lookup({ flow, stateKey: stateKey(flow, detailsPage("Tom Lee"), other) });
   console.log(`lookup name-filled: best ${lk2.match?.reflex.id.slice(0, 8)} score ${lk2.match?.score.toFixed(4)} candidates ${JSON.stringify(lk2.candidates.map((c) => c.score.toFixed(4)))}`);
-  if (!deduped) assert.equal(lk2.match?.reflex.id, r2.id);
+  assert.equal(lk2.match?.reflex.id, r2.id, "form-state gate must pick the name-filled reflex");
+  // A form state nobody learned (both fields filled) must not match even though cosine is high.
+  const lk2b = await lookup({ flow, stateKey: stateKey(flow, detailsPage("Tom Lee", "tom@x.io"), other) });
+  console.log(`lookup unlearned form state: match ${lk2b.match ? "YES (bad)" : "null"}, top score ${lk2b.candidates[0]?.score.toFixed(4)}`);
+  assert.equal(lk2b.match, null);
 
   // Filter: a flow with no reflexes must not match anything (the synthetic library has other flows).
   const lk3 = await lookup({ flow: "nonexistent_flow()", stateKey: kEmpty });

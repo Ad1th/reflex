@@ -70,3 +70,16 @@ export function describeAction(a: Action): string {
     case "done": return `done${a.summary ? `: ${a.summary}` : ""}`;
   }
 }
+
+/**
+ * Exact "progress" fingerprint of a stateKey: route + the sorted state lines of form fields
+ * (textbox/textarea/select/checkbox). Embeddings can't tell "Full name = (empty)" from
+ * "Full name = {name}" apart (cos ≈ 0.99), so a reflex may only fire when this matches exactly.
+ * Buttons are excluded so day/time lists that template differently between runs still match.
+ */
+export function formState(stateKey: string): string {
+  const lines = stateKey.split("\n");
+  const route = lines.find((l) => l.startsWith("ROUTE ")) ?? "";
+  const fields = lines.filter((l) => /^(textbox|textarea|select|checkbox) /.test(l)).sort();
+  return [route, ...fields].join("\n");
+}

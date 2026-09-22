@@ -50,7 +50,8 @@ body {
 }
 
 .tnum {
-  font-variant-numeric: tabular-nums;
+  /* Schibsted's tabular set also widens the period ("0 .7ms"), so keep proportional figures. */
+  font-variant-numeric: proportional-nums;
 }
 
 ::selection {

@@ -7,17 +7,38 @@ const URL = "https://api.groq.com/openai/v1/chat/completions";
 
 const BOOK_KEYS = ["type", "name", "email", "day", "time", "team_size", "notes"] as const;
 
+// Each Groq model has its own 8k tokens/min budget on the free tier, so on a 429 we rotate
+// to the next model instead of stalling; if every model is limited we wait out the hint.
+const FALLBACK_MODELS = [GROQ_MODEL, "openai/gpt-oss-20b", "qwen/qwen3.8-27b"];
+const limitedUntil = new Map<string, number>();
+
 async function groq(body: Record<string, unknown>): Promise<any> {
   const key = process.env.GROQ_API_KEY;
   if (!key) throw new Error("GROQ_API_KEY not set");
-  const res = await fetch(URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({ model: GROQ_MODEL, ...body }),
-  });
-  const text = await res.text();
-  if (!res.ok) throw new Error(`Groq ${res.status}: ${text.slice(0, 500)}`);
-  return JSON.parse(text);
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const now = Date.now();
+    const model = FALLBACK_MODELS.find((m) => (limitedUntil.get(m) ?? 0) <= now);
+    if (!model) {
+      const soonest = Math.min(...FALLBACK_MODELS.map((m) => limitedUntil.get(m) ?? 0));
+      await new Promise((r) => setTimeout(r, Math.max(250, soonest - now)));
+      continue;
+    }
+    const res = await fetch(URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      body: JSON.stringify({ model, ...body }),
+    });
+    const text = await res.text();
+    if (res.status === 429) {
+      const hint = /try again in ([\d.]+)(ms|s)/.exec(text);
+      const waitMs = hint ? parseFloat(hint[1]) * (hint[2] === "s" ? 1000 : 1) : 5000;
+      limitedUntil.set(model, Date.now() + waitMs + 250);
+      continue;
+    }
+    if (!res.ok) throw new Error(`Groq ${res.status}: ${text.slice(0, 500)}`);
+    return JSON.parse(text);
+  }
+  throw new Error("Groq: rate limited on all models");
 }
 
 const PARSE_SYSTEM = `You extract task parameters from a user instruction. Reply with a JSON object only: {"intent": string, "slots": {string: string}}.
@@ -53,7 +74,7 @@ export async function parse(instruction: string): Promise<ParseResponse> {
       } else {
         for (const [k, v] of Object.entries(raw)) slots[k] = v == null ? "" : String(v).trim();
       }
-      return { slots, flowTemplate: flowKey(intent, slots), ms: Math.round(performance.now() - t0), model: GROQ_MODEL };
+      return { slots, flowTemplate: flowKey(intent, slots), ms: Math.round(performance.now() - t0), model: data.model ?? GROQ_MODEL };
     } catch (e) {
       lastErr = e;
     }
@@ -219,7 +240,7 @@ ${renderPage(req.page)}`;
         action,
         reasoning: typeof msg.reasoning === "string" ? msg.reasoning.slice(0, 500) : undefined,
         ms: Math.round(performance.now() - t0),
-        model: GROQ_MODEL,
+        model: data.model ?? GROQ_MODEL,
       };
     } catch (e) {
       lastErr = e;

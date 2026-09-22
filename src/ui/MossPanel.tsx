@@ -72,7 +72,10 @@ export function MossPanel({ open, onClose, librarySize }: { open: boolean; onClo
           </span>
         </div>
         {err && <p className="mt-3 text-[12px] text-danger">Benchmark failed: {err}. Is the server running?</p>}
-        {bench && (
+        {bench && bench.librarySize === 0 && (
+          <p className="mt-3 text-[12px] text-muted">The reflex library is empty. Run a task first, then measure.</p>
+        )}
+        {bench && bench.librarySize > 0 && (
           <div className="mt-4 flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
               <div className="text-[12px] font-semibold text-reflex">Moss, in-process index</div>

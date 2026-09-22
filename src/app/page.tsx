@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { runTask } from "@/ui/devMock";
+import { runTask } from "@/agent/loop";
 import type { StepEvent } from "@/lib/types";
 import { SlotlyApp } from "@/target/SlotlyApp";
 import { BrowserFrame } from "@/ui/BrowserFrame";

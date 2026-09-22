@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Action, PageElement, PageState, Reflex } from "../src/lib/types";
 import { flowKey, signature, stateKey } from "../src/lib/templating";
-import { DIM, embedBatch } from "../src/server/embedder";
+import { DIM, embed } from "../src/server/embedder";
 
 const N = Number(process.argv[2] ?? 20000);
 const OUT = path.join(process.cwd(), "data");
@@ -161,6 +161,10 @@ const FLOWS: FlowDef[] = [
     "/donate|Make a donation|s:Fund:fund;t:Amount:amount;c:Make this monthly;t:Name:name;t:Email:email;b:Donate"] },
 ];
 
+const NOUNS = ["invoice", "order", "trip", "ticket", "report", "contact", "deal", "shipment", "claim", "task", "booking", "request", "event", "course", "payment", "receipt", "vehicle", "candidate", "campaign", "listing"];
+const ROW_VERBS = ["Open", "View", "Edit", "Recent:", "Pinned:", "Continue", "Duplicate", "Archive"];
+const ROW_TAGS = ["#", "No. ", "ID ", "ref ", ""];
+
 const CHROME: Record<string, string[]> = {};
 const chromeFor = (app: string) =>
   (CHROME[app] ??= ["Home", "Dashboard", "Settings", "Help", "Notifications", "Profile", "Search"].filter(() => rnd() < 0.5));
@@ -210,6 +214,13 @@ function makeState(): { flow: string; page: PageState; action: Action; post: Pag
     if (fl.role === "button" && rnd() < 0.1) el.disabled = true;
     elements.push(el);
   }
+  // Dynamic content rows (recent items, results, notifications) make states distinct like real apps.
+  const rows = Math.floor(rnd() * 5);
+  for (let i = 0; i < rows; i++) {
+    const noun = pick(NOUNS);
+    elements.push({ id: "", role: pick(["link", "button"] as const), label: `${pick(ROW_VERBS)} ${noun} ${pick(ROW_TAGS)}${Math.floor(rnd() * 9000 + 100)}` });
+  }
+  if (rnd() < 0.3) elements.push({ id: "", role: "link", label: `Page ${Math.floor(rnd() * 12) + 2}` });
   // App chrome (nav links) and occasional layout jitter.
   const nav: PageElement[] = chromeFor(f.app).map((l) => ({ id: "", role: "link", label: l }));
   if (rnd() < 0.15) for (let i = elements.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [elements[i], elements[j]] = [elements[j], elements[i]]; }
@@ -237,9 +248,15 @@ async function main() {
   console.log(`[seed] ${flows.length} flows, generating ${N} synthetic reflexes`);
   const meta: Reflex[] = [];
   const texts: string[] = [];
+  const seen = new Set<string>();
   for (let i = 0; i < N; i++) {
-    const s = makeState();
-    const preKey = stateKey(s.flow, s.page, {});
+    let s = makeState();
+    let preKey = stateKey(s.flow, s.page, {});
+    for (let tries = 0; seen.has(preKey) && tries < 20; tries++) {
+      s = makeState();
+      preKey = stateKey(s.flow, s.page, {});
+    }
+    seen.add(preKey);
     meta.push({
       id: `syn-${i}`,
       flow: s.flow,
@@ -255,12 +272,12 @@ async function main() {
   }
   console.log(`[seed] unique stateKeys: ${new Set(texts).size}`);
   const out = new Float32Array(N * DIM);
-  const B = 64;
   const t0 = performance.now();
-  for (let i = 0; i < N; i += B) {
-    const v = await embedBatch(texts.slice(i, i + B));
-    out.set(v, i * DIM);
-    if ((i / B) % 20 === 0) process.stdout.write(`\r[seed] embedded ${i + v.length / DIM}/${N}`);
+  // One text per call: the q8 model quantizes activations per batch, so batched embeddings drift
+  // (~0.99 cosine) from the single-text embeddings used at lookup time.
+  for (let i = 0; i < N; i++) {
+    out.set((await embed(texts[i])).vec, i * DIM);
+    if (i % 500 === 0) process.stdout.write(`\r[seed] embedded ${i}/${N}`);
   }
   console.log(`\n[seed] embedding took ${((performance.now() - t0) / 1000).toFixed(1)} s`);
   fs.mkdirSync(OUT, { recursive: true });

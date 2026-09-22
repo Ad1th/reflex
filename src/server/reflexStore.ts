@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { MossClient, type SessionIndex } from "@moss-dev/moss";
 import type { FeedbackRequest, LearnRequest, LookupRequest, LookupResponse, Reflex } from "../lib/types";
+import { formState } from "../lib/templating";
 import { DIM, embed, warm } from "./embedder";
 
 const SESSION_NAME = "reflex-lib";
@@ -29,7 +30,7 @@ const g = globalThis as unknown as { __reflexStore?: Promise<State> };
 
 const toDoc = (r: Stored) => ({
   id: r.id,
-  text: r.preKey,
+  text: r.flow, // keyword side unused (alpha 1); short text keeps addDocs fast. preKey lives in the map.
   metadata: { flow: r.flow, source: r.source },
   embedding: Array.from(r.embedding),
 });
@@ -51,6 +52,7 @@ async function create(): Promise<State> {
   if (!pid || !key) throw new Error("MOSS_PROJECT_ID / MOSS_PROJECT_KEY not set");
   const client = new MossClient(pid, key);
   const [session] = await Promise.all([client.session(SESSION_NAME, "custom"), warm()]);
+  const tSession = performance.now() - t0;
   const map = new Map<string, Stored>();
 
   // Synthetic library (other fictional flows), if seeded.
@@ -73,9 +75,12 @@ async function create(): Promise<State> {
       console.warn("[reflexStore] could not read reflexes.json:", e);
     }
   }
+  const tAdd = performance.now();
   await addToSession(session, [...map.values()]);
   const st: State = { client, session, map, filterOk: true, initMs: performance.now() - t0 };
-  console.log(`[reflexStore] init ${map.size} docs in ${st.initMs.toFixed(0)} ms`);
+  console.log(
+    `[reflexStore] init ${map.size} docs in ${st.initMs.toFixed(0)} ms (session+warm ${tSession.toFixed(0)} ms, addDocs ${(performance.now() - tAdd).toFixed(0)} ms)`,
+  );
   return st;
 }
 
@@ -136,12 +141,26 @@ export async function lookup(req: LookupRequest, threshold = 0.9): Promise<Looku
   const st = await getStore();
   const { vec, ms: embedMs } = await embed(req.stateKey);
   const t1 = performance.now();
-  const docs = await queryFlow(st, vec, req.flow, 3);
+  const hits = await queryFlow(st, vec, req.flow, 10);
   const mossMs = performance.now() - t1;
-  const candidates = docs.map((d) => ({ id: d.id, score: d.score }));
-  const best = docs[0];
-  const bestReflex = best ? st.map.get(best.id) : undefined;
-  const match = best && bestReflex && best.score >= threshold ? { reflex: publicReflex(bestReflex), score: best.score } : null;
+  // Moss `score` is rank-normalised (top hit is always 1.0, then 31/32, 31/33, …), NOT a similarity,
+  // so it can't be thresholded. Moss does the retrieval; we rescore its ≤10 hits with exact cosine.
+  const docs = hits
+    .map((d) => ({ id: d.id, score: st.map.has(d.id) ? dot(vec, st.map.get(d.id)!.embedding) : -1 }))
+    .sort((a, b) => b.score - a.score);
+  const candidates = docs.slice(0, 3).map((d) => ({ id: d.id, score: d.score }));
+  // Semantic similarity alone can't tell "Full name = (empty)" from "= {name}" (cos ≈ 0.99), so the
+  // first candidate above threshold must also have an identical form state.
+  const fs0 = formState(req.stateKey);
+  let match: LookupResponse["match"] = null;
+  for (const d of docs) {
+    if (d.score < threshold) break;
+    const r = st.map.get(d.id);
+    if (r && formState(r.preKey) === fs0) {
+      match = { reflex: publicReflex(r), score: d.score };
+      break;
+    }
+  }
   return {
     match,
     candidates,
@@ -154,11 +173,12 @@ export async function learn(req: LearnRequest): Promise<Reflex> {
   const st = await getStore();
   const { vec } = await embed(req.stateKey);
   const emb = Float32Array.from(vec);
-  // Near-duplicate of an existing reflex in the same flow → overwrite it.
+  // Near-duplicate (same flow, same form state) of an existing reflex → overwrite it.
+  const fs0 = formState(req.stateKey);
   let dup: Stored | undefined;
   let dupScore = -1;
   for (const r of st.map.values()) {
-    if (r.flow !== req.flow) continue;
+    if (r.flow !== req.flow || formState(r.preKey) !== fs0) continue;
     const c = dot(r.embedding, emb);
     if (c > dupScore) {
       dupScore = c;

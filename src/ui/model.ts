@@ -72,11 +72,12 @@ export function median(xs: number[]) {
 
 export function fmtSec(ms: number) {
   if (ms < 1000) return `${Math.round(ms)}ms`;
-  return `${(ms / 1000).toFixed(ms < 10_000 ? 1 : 1)}s`;
+  return `${(ms / 1000).toFixed(1)}s`;
 }
 
 export function fmtMs(ms: number | undefined) {
   if (ms == null) return "–";
+  if (ms < 1) return `${ms.toFixed(ms < 0.1 ? 3 : 2)}ms`;
   if (ms < 10) return `${ms.toFixed(1)}ms`;
   if (ms < 1000) return `${Math.round(ms)}ms`;
   return `${(ms / 1000).toFixed(1)}s`;
