@@ -33,7 +33,7 @@ A full reflex lookup takes about 10 ms end to end: ~6 ms to embed the page state
 ```mermaid
 flowchart LR
   subgraph Browser
-    A[Target web app<br/>Slotly] -->|DOM snapshot| S[State key<br/>route + heading + elements<br/>slot values → {name},{day}…]
+    A[Target web app<br/>Slotly] -->|DOM snapshot| S["State key<br/>route + heading + elements<br/>slot values → #123;name#125;, #123;day#125;…"]
     L[Agent loop]
   end
   subgraph Node server
@@ -107,4 +107,4 @@ docs/           PRD, architecture diagram
 docker build -t reflex .
 docker run -p 3000:3000 -e MOSS_PROJECT_ID=... -e MOSS_PROJECT_KEY=... -e GROQ_API_KEY=... reflex
 ```
-On Render or Railway, create a Docker web service from this repo and set the three env vars. The image build downloads the model and seeds the 20k synthetic library. Set `--build-arg SYNTHETIC_N=5000` if build minutes are tight.
+On Render or Railway, create a Docker web service from this repo and set the three env vars. The image build downloads the model and seeds the 20k synthetic library. Set `--build-arg SYNTHETIC_N=5000` if build minutes are tight. (The Dockerfile hasn't been test-built yet: Docker wasn't running on the build machine.)
