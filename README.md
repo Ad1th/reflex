@@ -101,3 +101,10 @@ src/ui/         mission-control UI
 src/lib/        shared contracts + slot templating
 docs/           PRD, architecture diagram
 ```
+
+## Deploy (container)
+```bash
+docker build -t reflex .
+docker run -p 3000:3000 -e MOSS_PROJECT_ID=... -e MOSS_PROJECT_KEY=... -e GROQ_API_KEY=... reflex
+```
+On Render or Railway, create a Docker web service from this repo and set the three env vars. The image build downloads the model and seeds the 20k synthetic library. Set `--build-arg SYNTHETIC_N=5000` if build minutes are tight.
