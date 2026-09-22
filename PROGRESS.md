@@ -43,3 +43,11 @@ Contracts: `src/lib/types.ts`, `src/lib/templating.ts` (owned by orchestrator �
 - 04:10 All lanes landed. Moss scores are rank-based (top hit = 1.0) → engine retrieves top-10 via Moss then rescores with exact cosine; plus exact formState gate (route + form-field states).
 - 04:10 e2e (scripts/e2e.ts, harness page /harness) ALL PASS: run1 cold 11.5s/11 LLM calls → run2 1.8s/1 call (10/10 reflex); rephrased 1.3s; shuffled 0.9s; renamed 10.7s (3 reflex, LLM for renamed pages, 1 fallback target_missing) → renamed again 1.05s all reflex. Bench @20k: Moss p50 ~0.7-1.0ms vs brute-force JS p50 9.3ms.
 - Groq free tier = 8k TPM per model → rotate gpt-oss-120b → gpt-oss-20b → qwen3.8-27b on 429.
+- 04:15 Done & pushed to https://github.com/Ad1th/reflex (public). 3/3 e2e passes (18/18 runs). README, PRD (docs/PRD.md), architecture (docs/architecture.png), submission copy (docs/SUBMISSION.md), video script (docs/VIDEO_SCRIPT.md), narrated TTS draft video out/video/reflex-demo.mp4 (2:22, gitignored).
+- Production server left running on localhost:3000 (`pnpm start`).
+
+## Morning TODO (user)
+1. Watch out/video/reflex-demo.mp4; re-voice with docs/VIDEO_SCRIPT.md if wanted (or submit as is).
+2. Deploy: needs long-running Node (Render/Railway Docker from Dockerfile — untested build; or `pnpm build && pnpm start` on a VM). Vercel serverless will NOT work (in-memory Moss session).
+3. Submit on HiDevs with docs/SUBMISSION.md text, architecture.png, PRD, repo, deployed link, video.
+4. Rotate the Moss/Groq/Kaggle keys after the hackathon (they were pasted in chat).
