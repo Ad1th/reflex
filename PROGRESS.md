@@ -40,3 +40,6 @@ Contracts: `src/lib/types.ts`, `src/lib/templating.ts` (owned by orchestrator �
 
 ## Status log
 - 02:40 Moss probe done, scaffold done, contracts written.
+- 04:10 All lanes landed. Moss scores are rank-based (top hit = 1.0) → engine retrieves top-10 via Moss then rescores with exact cosine; plus exact formState gate (route + form-field states).
+- 04:10 e2e (scripts/e2e.ts, harness page /harness) ALL PASS: run1 cold 11.5s/11 LLM calls → run2 1.8s/1 call (10/10 reflex); rephrased 1.3s; shuffled 0.9s; renamed 10.7s (3 reflex, LLM for renamed pages, 1 fallback target_missing) → renamed again 1.05s all reflex. Bench @20k: Moss p50 ~0.7-1.0ms vs brute-force JS p50 9.3ms.
+- Groq free tier = 8k TPM per model → rotate gpt-oss-120b → gpt-oss-20b → qwen3.8-27b on 429.
