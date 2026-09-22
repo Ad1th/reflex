@@ -107,7 +107,7 @@ export function RunHistory({
             <div className="text-[15px] font-semibold text-ink">faster</div>
             <div className="tnum mt-1.5 text-[12px] leading-4 text-muted">
               Run {latest!.n} vs run {best.first.n}, same kind of task: {fmtSec(best.first.wallMs!)} to{" "}
-              {fmtSec(latest!.wallMs!)}
+              {fmtSec(latest!.wallMs!)} of agent time
             </div>
           </div>
         ) : (

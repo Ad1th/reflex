@@ -22,7 +22,7 @@ export function templatizeAction(a: Action, slots: Slots): Action {
     case "type": return { ...a, label: templatize(a.label, slots), text: templatize(a.text, slots) };
     case "select": return { ...a, label: templatize(a.label, slots), option: templatize(a.option, slots) };
     case "check": return { ...a, label: templatize(a.label, slots) };
-    case "done": return a;
+    case "done": return a.summary ? { ...a, summary: templatize(a.summary, slots) } : a;
   }
 }
 
@@ -32,7 +32,7 @@ export function fillAction(a: Action, slots: Slots): Action {
     case "type": return { ...a, label: fill(a.label, slots), text: fill(a.text, slots) };
     case "select": return { ...a, label: fill(a.label, slots), option: fill(a.option, slots) };
     case "check": return { ...a, label: fill(a.label, slots) };
-    case "done": return a;
+    case "done": return a.summary ? { ...a, summary: fill(a.summary, slots) } : a;
   }
 }
 

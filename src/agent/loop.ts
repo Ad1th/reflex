@@ -136,7 +136,7 @@ export async function runTask(opts: RunTaskOptions): Promise<RunSummaryExt> {
 
       let source: StepSource = "llm";
       let rejectReason: StepEvent["rejectReason"];
-      let score: number | undefined = lookup.match?.score ?? lookup.candidates?.[0]?.score;
+      const score: number | undefined = lookup.match?.score ?? lookup.candidates?.[0]?.score;
       if (!lookup.match && lookup.candidates?.length) rejectReason = "low_score";
 
       const guard = (action: Action) => {

@@ -1,4 +1,5 @@
 // Groq client: instruction parsing (JSON mode) and single-step tool calling.
+/* eslint-disable @typescript-eslint/no-explicit-any -- untyped Groq JSON responses */
 import type { Action, LlmStepRequest, LlmStepResponse, PageState, ParseResponse, Slots } from "../lib/types";
 import { flowKey } from "../lib/templating";
 

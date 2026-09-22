@@ -120,7 +120,8 @@ export default function Home() {
       patch(n, () => ({
         runId: summary.runId,
         steps: summary.steps,
-        wallMs: summary.wallMs,
+        // agent time: exclude the artificial per-step display delay so speedups are honest
+        wallMs: summary.wallMs - (summary.visualDelayMs ?? 0),
         llmCalls: summary.llmCalls,
         reflexHits: summary.reflexHits,
         phase: "done",
