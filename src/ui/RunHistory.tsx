@@ -35,7 +35,8 @@ export function RunHistory({
   const wall = (r: RunRecord) => r.wallMs ?? Math.max(0, now - r.startedAt);
   const max = Math.max(1000, ...runs.map(wall));
   const shown = runs.slice(-5);
-  const latest = runs.at(-1);
+  // Describe the most recent run that beat its first run (a slower chaos run shouldn't hide the result).
+  const latest = [...runs].reverse().find((r) => speedupFor(r, runs));
   const best = latest ? speedupFor(latest, runs) : undefined;
 
   return (

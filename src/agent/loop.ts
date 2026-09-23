@@ -89,7 +89,7 @@ export async function runTask(opts: RunTaskOptions): Promise<RunSummaryExt> {
 
   /** Highlight during the visual delay, then act + settle. Returns actMs (excl. delay). */
   const act = async (el: HTMLElement, action: Action, source: StepSource): Promise<number> => {
-    const unhl = highlight(el, `${source === "reflex" ? "⚡" : "🧠"} ${describeAction(action)}`, source === "reflex" ? "#16a34a" : source === "fallback" ? "#d97706" : "#7c3aed");
+    const unhl = highlight(el, `${source === "reflex" ? "reflex" : source === "fallback" ? "fallback" : "llm"}  ${describeAction(action)}`, source === "reflex" ? "#2743c4" : "#1f1f1f");
     try {
       const d0 = now();
       await sleep(visualDelayMs, signal);

@@ -22,14 +22,14 @@ export function highlight(el: HTMLElement, text: string, color = "#7c3aed"): () 
   box.setAttribute("data-rx-overlay", "");
   Object.assign(box.style, {
     position: "fixed", left: `${r.left - 3}px`, top: `${r.top - 3}px`, width: `${r.width + 6}px`, height: `${r.height + 6}px`,
-    border: `2px solid ${color}`, borderRadius: "6px", boxShadow: `0 0 0 4px ${color}33`, pointerEvents: "none",
+    border: `1.5px solid ${color}`, borderRadius: "2px", pointerEvents: "none",
     zIndex: "2147483646", transition: "opacity 150ms", boxSizing: "border-box",
   } as Partial<CSSStyleDeclaration>);
   const badge = doc.createElement("div");
   badge.textContent = text;
   Object.assign(badge.style, {
-    position: "absolute", left: "-2px", bottom: "100%", marginBottom: "2px", background: color, color: "#fff",
-    font: "600 11px/1.4 ui-sans-serif, system-ui, sans-serif", padding: "1px 6px", borderRadius: "4px",
+    position: "absolute", left: "-1.5px", bottom: "100%", marginBottom: "3px", background: "#fff", color,
+    font: "500 11px/1.4 ui-monospace, 'IBM Plex Mono', Menlo, monospace", padding: "0 2px", letterSpacing: "0.02em",
     whiteSpace: "nowrap", maxWidth: "320px", overflow: "hidden", textOverflow: "ellipsis",
   } as Partial<CSSStyleDeclaration>);
   box.appendChild(badge);

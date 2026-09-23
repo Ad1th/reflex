@@ -145,3 +145,8 @@ input[type="range"].rx-range::-moz-range-thumb {
     animation: none;
   }
 }
+
+/* The task field is marked by its bottom rule on focus; no outline box. */
+#rx-instruction:focus-visible {
+  outline: none;
+}
