@@ -7,7 +7,7 @@
   "run3_start": "Different wording, and a different meeting type. Names, days and times are abstracted into slots, so the reflexes still transfer.",
   "run4_start": "Now some chaos. The whole layout is shuffled. Reflexes target elements by role and label, not position, so they still fire.",
   "run5_start": "Harder chaos: the labels are renamed. The remembered buttons no longer exist, so those reflexes are rejected before acting, and the L.L.M. takes over for just those steps.",
-  "run5_end": "Nothing broke. Amber marks a reflex that was safely rejected, and the new steps were learned on the spot.",
+  "run5_end": "Nothing broke. The fallback row is a reflex that was safely rejected, and the new steps were learned on the spot.",
   "run6_start": "Run it again, and it has already relearned. All reflexes.",
   "moss": "Why Moss? This lookup sits on the hot path of every single step, so it has to cost less than a click. Moss's in-process index answers in under a millisecond across twenty thousand reflexes, about twelve times faster than a brute force scan, and new reflexes are searchable instantly. Reflex: agents that stop thinking about things they've already figured out."
 }
