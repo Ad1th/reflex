@@ -5,19 +5,22 @@ import { describeAction } from "@/lib/templating";
 import type { StepEvent } from "@/lib/types";
 import { fmtMs, REJECT_TEXT, type RunRecord } from "./model";
 
-const BADGE = {
-  llm: { text: "🧠 LLM", cls: "bg-llm-dim text-llm" },
-  reflex: { text: "⚡ REFLEX", cls: "bg-reflex-dim text-reflex" },
-  fallback: { text: "↩ FALLBACK", cls: "bg-fallback-dim text-fallback" },
+const SOURCE = {
+  llm: { text: "LLM", square: "bg-llm", ink: "text-llm" },
+  reflex: { text: "REFLEX", square: "bg-reflex", ink: "text-reflex" },
+  fallback: { text: "FALLBACK", square: "bg-fallback", ink: "text-fallback" },
 } as const;
 
-function Badge({ kind }: { kind: keyof typeof BADGE }) {
-  const b = BADGE[kind];
+type Kind = keyof typeof SOURCE;
+
+const GRID = "grid grid-cols-[24px_88px_1fr_132px] gap-3 px-3";
+
+export function SourceMark({ kind }: { kind: Kind }) {
+  const s = SOURCE[kind];
   return (
-    <span
-      className={`inline-flex h-[22px] w-[92px] shrink-0 items-center justify-center rounded text-[11px] font-bold tracking-[0.04em] ${b.cls}`}
-    >
-      {b.text}
+    <span className={`inline-flex items-center gap-1.5 font-mono text-[11px] font-medium tracking-[0.04em] ${s.ink}`}>
+      <span aria-hidden className={`size-[7px] shrink-0 ${s.square}`} />
+      {s.text}
     </span>
   );
 }
@@ -32,7 +35,7 @@ function Row({
   flash,
 }: {
   n: string;
-  kind: keyof typeof BADGE;
+  kind: Kind;
   main: string;
   sub?: string;
   ms: string;
@@ -40,28 +43,18 @@ function Row({
   flash?: boolean;
 }) {
   return (
-    <li
-      className={`rx-row grid grid-cols-[22px_92px_1fr_auto] items-center gap-3 border-b border-rule-soft px-3 py-[5px] ${
-        flash ? "rx-flash" : ""
-      }`}
-    >
-      <span className="tnum text-right text-[11px] text-faint">{n}</span>
-      <Badge kind={kind} />
+    <li className={`rx-row ${GRID} items-baseline border-b border-rule-soft py-[4px] ${flash ? "rx-flash" : ""}`}>
+      <span className="tnum text-right font-mono text-[11px] text-faint">{n}</span>
+      <SourceMark kind={kind} />
       <span className="min-w-0">
-        <span className="block truncate font-mono text-[11.5px] leading-[18px] text-ink" title={main}>
+        <span className="block truncate font-mono text-[12px] leading-[18px] text-ink" title={main}>
           {main}
         </span>
         {sub && <span className="block truncate text-[11.5px] leading-4 text-fallback">{sub}</span>}
       </span>
-      <span className="flex flex-col items-end">
-        <span
-          className={`tnum text-[13px] leading-[18px] font-semibold ${
-            kind === "reflex" ? "text-reflex" : "text-ink"
-          }`}
-        >
-          {ms}
-        </span>
-        {msSub && <span className="tnum text-[10.5px] leading-3 text-faint">{msSub}</span>}
+      <span className="tnum text-right font-mono text-[12px] leading-[18px] whitespace-nowrap">
+        {msSub && <span className="mr-2 text-[10.5px] text-faint">{msSub}</span>}
+        <span className={`inline-block min-w-[44px] ${kind === "reflex" ? "font-medium text-reflex" : "text-ink"}`}>{ms}</span>
       </span>
     </li>
   );
@@ -93,19 +86,11 @@ function stepRow(s: StepEvent) {
         main={desc}
         sub={`Reflex rejected: ${why}${s.score != null ? ` (score ${s.score.toFixed(2)})` : ""}. LLM took over.`}
         ms={fmtMs(t.llmMs ?? t.totalMs)}
-        msSub="llm"
       />
     );
   }
   return (
-    <Row
-      key={`${s.runId}-${s.index}`}
-      n={String(s.index + 1)}
-      kind="llm"
-      main={desc}
-      ms={fmtMs(t.llmMs ?? t.totalMs)}
-      msSub="llm"
-    />
+    <Row key={`${s.runId}-${s.index}`} n={String(s.index + 1)} kind="llm" main={desc} ms={fmtMs(t.llmMs ?? t.totalMs)} />
   );
 }
 
@@ -129,58 +114,59 @@ export function Timeline({ run, isLatest }: { run?: RunRecord; isLatest: boolean
   const llm = run ? run.steps.length - reflexes : 0;
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-rule bg-panel">
-      <div className="flex h-9 shrink-0 items-center gap-3 border-b border-rule px-3 text-[12px]">
-        <span className="font-semibold text-ink">{run ? `Run ${run.n} steps` : "Steps"}</span>
+    <section className="flex min-h-0 flex-1 flex-col border-t border-ink">
+      <div className="flex h-9 shrink-0 items-baseline gap-4 pt-2.5">
+        <h2 className="text-[13px] font-semibold text-ink">{run ? `Run ${run.n}, step by step` : "Steps"}</h2>
         {run && (
-          <span className="tnum text-muted">
-            <span className="text-llm">{llm} LLM</span>
+          <span className="tnum font-mono text-[11.5px] text-muted">
+            <span className="text-llm">{llm} llm</span>
             <span className="text-faint"> / </span>
             <span className="text-reflex">{reflexes} reflex</span>
           </span>
         )}
-        <span className="ml-auto flex items-center gap-3 text-faint">
-          <span>lookup / LLM time</span>
-        </span>
+      </div>
+      <div className={`${GRID} shrink-0 border-b border-rule py-1`}>
+        <span className="rx-label text-right">#</span>
+        <span className="rx-label">Source</span>
+        <span className="rx-label">Action</span>
+        <span className="rx-label text-right">Time</span>
       </div>
       <ol ref={listRef} className="rx-scroll min-h-0 flex-1 overflow-y-auto">
         {!run && (
-          <li className="flex h-full flex-col items-center justify-center gap-1 px-8 text-center">
-            <span className="text-[14px] text-ink">Pick a task and run the agent.</span>
-            <span className="text-[13px] text-muted">
-              The first run reasons through every step with the LLM. Run a similar task again and
-              watch the steps turn into reflexes.
-            </span>
+          <li className="max-w-[440px] px-3 py-5 text-[13px] leading-[1.55] text-graphite">
+            Pick a task and run the agent. The first run reasons through every step with the LLM; run a similar
+            task again and those steps come back as reflexes.
           </li>
         )}
         {run && (
-          <Row
-            n="0"
-            kind="llm"
-            main="parse task → slots"
-            sub={undefined}
-            ms={run.parseMs != null ? fmtMs(run.parseMs) : "…"}
-            msSub="llm"
-          />
+          <Row n="0" kind="llm" main="parse task → slots" ms={run.parseMs != null ? fmtMs(run.parseMs) : "…"} />
         )}
         {run && slotText && (
-          <li className="rx-row truncate border-b border-rule-soft py-1.5 pr-3 pl-[149px] font-mono text-[11px] text-muted" title={slotText}>
-            {slotText}
+          <li className={`rx-row ${GRID} border-b border-rule-soft py-[5px]`}>
+            <span />
+            <span />
+            <span className="col-span-2 truncate font-mono text-[11px] text-muted" title={slotText}>
+              {slotText}
+            </span>
           </li>
         )}
         {run?.steps.map(stepRow)}
         {run?.status === "running" && run.phase !== "parsing" && (
-          <li className="flex items-center gap-3 px-3 py-2 text-[12px] text-muted">
-            <span className="w-[22px]" />
-            <span className="rx-pulse size-1.5 rounded-full bg-muted" />
-            {run.phase === "learning" ? "Saving new steps as reflexes" : "Looking up the next step"}
+          <li className={`${GRID} items-center py-2 text-[12px] text-muted`}>
+            <span />
+            <span aria-hidden className="rx-pulse size-[7px] bg-muted" />
+            <span>{run.phase === "learning" ? "Saving new steps as reflexes" : "Looking up the next step"}</span>
           </li>
         )}
         {run && run.status !== "running" && (
-          <li className="px-3 py-2 pl-[149px] text-[12px]">
-            {run.status === "done" && <span className="text-reflex">Task complete.</span>}
-            {run.status === "stopped" && <span className="text-muted">Stopped.</span>}
-            {run.status === "error" && <span className="text-danger">Run failed: {run.error ?? "unknown error"}</span>}
+          <li className={`${GRID} py-2 text-[12px]`}>
+            <span />
+            <span />
+            <span className="col-span-2">
+              {run.status === "done" && <span className="text-ink">Task complete.</span>}
+              {run.status === "stopped" && <span className="text-muted">Stopped.</span>}
+              {run.status === "error" && <span className="text-danger">Run failed: {run.error ?? "unknown error"}</span>}
+            </span>
           </li>
         )}
       </ol>

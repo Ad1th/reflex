@@ -7,9 +7,9 @@ export type SlotlyVariant = "normal" | "shuffled" | "renamed";
 type Route = "/" | "/book/day" | "/book/time" | "/book/details" | "/book/review" | "/book/done";
 
 const MEETING_TYPES = [
-  { name: "Demo call", minutes: 30, desc: "A guided tour of the Nova platform tailored to your team.", color: "bg-indigo-500" },
-  { name: "Onboarding session", minutes: 60, desc: "Hands-on setup with a solutions engineer.", color: "bg-emerald-500" },
-  { name: "Support call", minutes: 15, desc: "Quick help with an issue or question.", color: "bg-amber-500" },
+  { name: "Demo call", minutes: 30, desc: "A guided tour of the Nova platform tailored to your team.", color: "bg-neutral-900" },
+  { name: "Onboarding session", minutes: 60, desc: "Hands-on setup with a solutions engineer.", color: "bg-neutral-500" },
+  { name: "Support call", minutes: 15, desc: "Quick help with an issue or question.", color: "bg-neutral-300" },
 ] as const;
 
 const DAYS = [
@@ -63,18 +63,18 @@ function BrandMark() {
   return (
     <div className="flex items-center gap-2 select-none" aria-hidden="true">
       <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
-        <rect width="32" height="32" rx="9" fill="url(#slotly-g)" />
+        <rect width="32" height="32" rx="6" fill="#171717" />
         <rect x="8" y="9" width="16" height="15" rx="3" stroke="white" strokeWidth="2" />
         <path d="M8 14h16" stroke="white" strokeWidth="2" />
         <path d="M12.5 19l2.2 2.2 4.8-4.8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         <defs>
           <linearGradient id="slotly-g" x1="0" y1="0" x2="32" y2="32">
-            <stop stopColor="#6366F1" />
-            <stop offset="1" stopColor="#8B5CF6" />
+            <stop stopColor="#171717" />
+            <stop offset="1" stopColor="#171717" />
           </linearGradient>
         </defs>
       </svg>
-      <span className="text-[15px] font-semibold tracking-tight text-slate-900">Slotly</span>
+      <span className="text-[15px] font-semibold tracking-tight text-neutral-900">Slotly</span>
     </div>
   );
 }
@@ -83,7 +83,7 @@ function HostAvatar({ size = 40 }: { size?: number }) {
   return (
     <div
       aria-hidden="true"
-      className="flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-indigo-600 font-semibold text-white shadow-sm ring-2 ring-white"
+      className="flex shrink-0 items-center justify-center rounded-full bg-neutral-800 font-semibold text-white"
       style={{ width: size, height: size, fontSize: size * 0.36 }}
     >
       NL
@@ -93,7 +93,7 @@ function HostAvatar({ size = 40 }: { size?: number }) {
 
 function Icon({ d }: { d: string }) {
   return (
-    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-slate-400">
+    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-neutral-400">
       <path d={d} />
     </svg>
   );
@@ -112,13 +112,13 @@ function Stepper({ route }: { route: Route }) {
         <li key={s.route} className="flex items-center gap-1.5">
           <span
             className={
-              "flex h-5 items-center rounded-full px-2 text-[11px] font-medium transition-colors " +
-              (i < idx ? "bg-indigo-100 text-indigo-700" : i === idx ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-400")
+              "flex h-5 items-center px-1.5 text-[11px] font-medium transition-colors " +
+              (i < idx ? "bg-neutral-200 text-neutral-900" : i === idx ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-400")
             }
           >
             {s.label}
           </span>
-          {i < STEPS.length - 1 && <span className="h-px w-2 bg-slate-200" />}
+          {i < STEPS.length - 1 && <span className="h-px w-2 bg-neutral-200" />}
         </li>
       ))}
     </ol>
@@ -131,7 +131,7 @@ function BackButton({ onClick, className = "" }: { onClick: () => void; classNam
       type="button"
       onClick={onClick}
       className={
-        "inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-indigo-500 " +
+        "inline-flex items-center gap-1 rounded border border-neutral-200 bg-white px-3 py-1.5 text-sm font-medium text-neutral-600 transition hover:bg-neutral-50 hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-neutral-900 " +
         className
       }
     >
@@ -141,15 +141,15 @@ function BackButton({ onClick, className = "" }: { onClick: () => void; classNam
 }
 
 const inputCls =
-  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20";
+  "w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/10";
 
-const labelCls = "mb-1 block text-[13px] font-medium text-slate-700";
+const labelCls = "mb-1 block text-[13px] font-medium text-neutral-700";
 
 const primaryBtn =
-  "inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none";
+  "inline-flex items-center justify-center rounded bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-neutral-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500 disabled:shadow-none";
 
 const secondaryBtn =
-  "inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-indigo-500";
+  "inline-flex items-center justify-center rounded border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-neutral-900";
 
 /* ---------- main component ---------- */
 
@@ -212,7 +212,7 @@ export function SlotlyApp(props: { variant: SlotlyVariant; onRouteChange?: (rout
           <div
             key={m.name}
             className={
-              "group relative rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-px hover:border-indigo-300 hover:shadow-md " +
+              "group relative rounded-md border border-neutral-200 bg-white transition hover:border-neutral-400 " +
               (shuffled ? "flex flex-col gap-2 p-3" : "flex items-start gap-3 p-4")
             }
           >
@@ -224,18 +224,18 @@ export function SlotlyApp(props: { variant: SlotlyVariant; onRouteChange?: (rout
                   setType(m.name);
                   go("/book/day");
                 }}
-                className="text-left text-[15px] font-semibold text-slate-900 outline-none after:absolute after:inset-0 after:rounded-xl after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-indigo-500"
+                className="text-left text-[15px] font-semibold text-neutral-900 outline-none after:absolute after:inset-0 after:rounded-md after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-neutral-900"
               >
                 {m.name}
               </button>
-              <p aria-hidden="true" className="mt-0.5 text-[13px] leading-snug text-slate-500">
+              <p aria-hidden="true" className="mt-0.5 text-[13px] leading-snug text-neutral-500">
                 {m.desc}
               </p>
             </div>
             <span
               aria-hidden="true"
               className={
-                "flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 " +
+                "flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600 " +
                 (shuffled ? "self-start" : "shrink-0")
               }
             >
@@ -256,7 +256,7 @@ export function SlotlyApp(props: { variant: SlotlyVariant; onRouteChange?: (rout
             <BackButton onClick={() => go("/")} />
           </div>
         )}
-        <p aria-hidden="true" className="text-[13px] text-slate-500">
+        <p aria-hidden="true" className="text-[13px] text-neutral-500">
           Week of September 28 · all times shown in your local time zone
         </p>
         <div className={shuffled ? "flex flex-col gap-2" : "grid grid-cols-5 gap-2"}>
@@ -264,7 +264,7 @@ export function SlotlyApp(props: { variant: SlotlyVariant; onRouteChange?: (rout
             <div
               key={d.name}
               className={
-                "relative rounded-xl border border-slate-200 bg-white shadow-sm transition hover:border-indigo-400 hover:bg-indigo-50/60 " +
+                "relative rounded-md border border-neutral-200 bg-white transition hover:border-neutral-500 hover:bg-neutral-50 " +
                 (shuffled ? "flex items-center justify-between px-4 py-3" : "flex flex-col items-center gap-1 px-1 py-4")
               }
             >
@@ -274,14 +274,14 @@ export function SlotlyApp(props: { variant: SlotlyVariant; onRouteChange?: (rout
                   setDay(d.name);
                   go("/book/time");
                 }}
-                className="text-[13px] font-semibold text-slate-900 outline-none after:absolute after:inset-0 after:rounded-xl after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-indigo-500"
+                className="text-[13px] font-semibold text-neutral-900 outline-none after:absolute after:inset-0 after:rounded-md after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-neutral-900"
               >
                 {d.name}
               </button>
-              <span aria-hidden="true" className="text-xs text-slate-500">
+              <span aria-hidden="true" className="text-xs text-neutral-500">
                 {d.date}
               </span>
-              <span aria-hidden="true" className="text-[11px] font-medium text-emerald-600">
+              <span aria-hidden="true" className="text-[11px] font-medium text-neutral-500">
                 6 slots
               </span>
             </div>
@@ -299,7 +299,7 @@ export function SlotlyApp(props: { variant: SlotlyVariant; onRouteChange?: (rout
     const times = shuffled ? TIMES_SHUFFLED : TIMES;
     body = (
       <div className="flex flex-col gap-4">
-        <p aria-hidden="true" className="flex items-center gap-1.5 text-[13px] text-slate-500">
+        <p aria-hidden="true" className="flex items-center gap-1.5 text-[13px] text-neutral-500">
           <Icon d={ICON_GLOBE} />
           {dayInfo?.date ?? ""} · Eastern Time (US &amp; Canada)
         </p>
@@ -313,7 +313,7 @@ export function SlotlyApp(props: { variant: SlotlyVariant; onRouteChange?: (rout
                 go("/book/details");
               }}
               className={
-                "rounded-lg border border-indigo-200 bg-white py-2.5 text-sm font-semibold text-indigo-700 shadow-sm transition hover:border-indigo-500 hover:bg-indigo-600 hover:text-white focus-visible:outline-2 focus-visible:outline-indigo-500 " +
+                "rounded border border-neutral-300 bg-white py-2.5 text-sm font-semibold text-neutral-900 transition hover:border-neutral-900 hover:bg-neutral-900 hover:text-white focus-visible:outline-2 focus-visible:outline-neutral-900 " +
                 (shuffled ? "text-left px-4" : "text-center")
               }
             >
@@ -372,11 +372,11 @@ export function SlotlyApp(props: { variant: SlotlyVariant; onRouteChange?: (rout
         <input
           id="slotly-agree"
           type="checkbox"
-          className="h-4 w-4 rounded border-slate-300 accent-indigo-600"
+          className="h-4 w-4 rounded border-neutral-300 accent-neutral-600"
           checked={agree}
           onChange={(e) => setAgree(e.target.checked)}
         />
-        <label htmlFor="slotly-agree" className="text-[13px] text-slate-700">
+        <label htmlFor="slotly-agree" className="text-[13px] text-neutral-700">
           I agree to the terms
         </label>
       </div>
@@ -424,20 +424,20 @@ export function SlotlyApp(props: { variant: SlotlyVariant; onRouteChange?: (rout
     );
     body = (
       <div className="flex flex-col gap-5">
-        <dl className={shuffled ? "grid grid-cols-2 gap-3" : "divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white"}>
+        <dl className={shuffled ? "grid grid-cols-2 gap-3" : "divide-y divide-neutral-100 rounded-md border border-neutral-200 bg-white"}>
           {ordered.map(([k, v]) => (
             <div
               key={k}
-              className={shuffled ? "rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-sm" : "flex items-center justify-between px-4 py-2.5"}
+              className={shuffled ? "rounded-md border border-neutral-200 bg-white px-3.5 py-2.5" : "flex items-center justify-between px-4 py-2.5"}
             >
-              <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">{k}</dt>
-              <dd className="text-sm font-medium text-slate-900">{v}</dd>
+              <dt className="text-xs font-medium uppercase tracking-wide text-neutral-400">{k}</dt>
+              <dd className="text-sm font-medium text-neutral-900">{v}</dd>
             </div>
           ))}
         </dl>
         {notes.trim() && (
-          <p className="rounded-lg bg-slate-50 px-3 py-2 text-[13px] text-slate-600">
-            <span className="font-medium text-slate-700">Notes: </span>
+          <p className="rounded bg-neutral-50 px-3 py-2 text-[13px] text-neutral-600">
+            <span className="font-medium text-neutral-700">Notes: </span>
             {notes}
           </p>
         )}
@@ -448,17 +448,17 @@ export function SlotlyApp(props: { variant: SlotlyVariant; onRouteChange?: (rout
     heading = `You're booked, ${name}!`;
     body = (
       <div className="flex flex-col items-center gap-4 py-2 text-center">
-        <div aria-hidden="true" className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+        <div aria-hidden="true" className="flex h-14 w-14 items-center justify-center rounded-full border border-neutral-300 text-neutral-900">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M5 12.5l4.5 4.5L19 7.5" />
           </svg>
         </div>
-        <p className="max-w-sm text-sm text-slate-600">
-          A calendar invitation for your <span className="font-medium text-slate-900">{type}</span> with Nova Labs on{" "}
-          <span className="font-medium text-slate-900">
+        <p className="max-w-sm text-sm text-neutral-600">
+          A calendar invitation for your <span className="font-medium text-neutral-900">{type}</span> with Nova Labs on{" "}
+          <span className="font-medium text-neutral-900">
             {day} at {time}
           </span>{" "}
-          has been sent to <span className="font-medium text-slate-900">{email}</span>.
+          has been sent to <span className="font-medium text-neutral-900">{email}</span>.
         </p>
         <button type="button" onClick={reset} className={primaryBtn}>
           Book another
@@ -473,16 +473,16 @@ export function SlotlyApp(props: { variant: SlotlyVariant; onRouteChange?: (rout
     <aside
       aria-hidden="true"
       className={
-        "flex shrink-0 flex-col gap-4 bg-slate-50/80 p-5 " +
-        (shuffled ? "w-[200px] border-l border-slate-200" : "w-[210px] border-r border-slate-200")
+        "flex shrink-0 flex-col gap-4 bg-neutral-50/80 p-5 " +
+        (shuffled ? "w-[200px] border-l border-neutral-200" : "w-[210px] border-r border-neutral-200")
       }
     >
       <HostAvatar size={shuffled ? 36 : 44} />
       <div>
-        <div className="text-[13px] font-medium text-slate-500">Nova Labs</div>
-        <div className="mt-0.5 text-base font-semibold leading-tight text-slate-900">{type || "Book a meeting"}</div>
+        <div className="text-[13px] font-medium text-neutral-500">Nova Labs</div>
+        <div className="mt-0.5 text-base font-semibold leading-tight text-neutral-900">{type || "Book a meeting"}</div>
       </div>
-      <div className="flex flex-col gap-2 text-[13px] text-slate-600">
+      <div className="flex flex-col gap-2 text-[13px] text-neutral-600">
         <div className="flex items-center gap-2">
           <Icon d={ICON_CLOCK} />
           {meeting ? `${meeting.minutes} min` : "15–60 min"}
@@ -503,14 +503,14 @@ export function SlotlyApp(props: { variant: SlotlyVariant; onRouteChange?: (rout
           Eastern Time
         </div>
       </div>
-      <div className="mt-auto text-[11px] leading-snug text-slate-400">Powered by Slotly · Privacy · Terms</div>
+      <div className="mt-auto text-[11px] leading-snug text-neutral-400">Powered by Slotly · Privacy · Terms</div>
     </aside>
   );
 
   const main = (
     <section className="flex min-w-0 flex-1 flex-col gap-4 p-6">
       <Stepper route={route} />
-      <h1 className="text-xl font-semibold tracking-tight text-slate-900">{heading}</h1>
+      <h1 className="text-xl font-semibold tracking-tight text-neutral-900">{heading}</h1>
       <div key={route} className="slotly-fade">
         {body}
       </div>
@@ -518,20 +518,20 @@ export function SlotlyApp(props: { variant: SlotlyVariant; onRouteChange?: (rout
   );
 
   return (
-    <div data-rx-root data-route={route} className="h-full w-full bg-gradient-to-b from-slate-100 to-slate-200/70 font-sans text-slate-900 antialiased">
+    <div data-rx-root data-route={route} className="h-full w-full bg-neutral-100 font-sans text-neutral-900 antialiased">
       <style>{`@keyframes slotly-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}.slotly-fade{animation:slotly-fade .22s ease-out}`}</style>
       <div ref={scrollRef} className="h-full w-full overflow-y-auto">
         <div className="mx-auto flex min-h-full max-w-[760px] flex-col gap-3 p-4">
           <header aria-hidden="true" className="flex items-center justify-between px-1">
             <BrandMark />
-            <div className="flex items-center gap-2 text-[13px] text-slate-500">
+            <div className="flex items-center gap-2 text-[13px] text-neutral-500">
               <span>Nova Labs</span>
               <HostAvatar size={24} />
             </div>
           </header>
           <div
             className={
-              "flex overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-8px_rgba(15,23,42,0.12)]"
+              "flex overflow-hidden rounded-md border border-neutral-200/80 bg-white "
             }
           >
             {shuffled ? (

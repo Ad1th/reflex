@@ -184,8 +184,8 @@ export default function Home() {
         }}
         onOpenMoss={() => setMossOpen((o) => !o)}
       />
-      <main className="relative flex min-h-0 flex-1 gap-5 p-5">
-        <div className="flex min-h-0 min-w-0 basis-[55%] flex-col">
+      <main className="relative flex min-h-0 flex-1 gap-7 px-6 pt-5 pb-4">
+        <div className="flex min-h-0 min-w-0 basis-[56%] flex-col">
           <BrowserFrame
             route={route}
             variant={variant}
@@ -197,7 +197,7 @@ export default function Home() {
             <SlotlyApp key={`${appKey}-${variant}`} variant={variant} onRouteChange={setRoute} />
           </BrowserFrame>
         </div>
-        <div className="flex min-h-0 min-w-0 basis-[45%] flex-col gap-3">
+        <div className="flex min-h-0 min-w-0 basis-[44%] flex-col">
           <Controls
             instruction={instruction}
             setInstruction={setInstruction}

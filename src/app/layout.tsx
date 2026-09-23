@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
-import { Martian_Mono, Schibsted_Grotesk } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 
-const ui = Schibsted_Grotesk({
+const ui = IBM_Plex_Sans({
   variable: "--font-ui",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
-const code = Martian_Mono({
+const code = IBM_Plex_Mono({
   variable: "--font-code",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
