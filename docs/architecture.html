@@ -4,132 +4,87 @@
 <meta charset="utf-8">
 <title>Reflex architecture</title>
 <style>
-  :root { --bg:#0b0f14; --panel:#121821; --rule:#253041; --ink:#e8edf3; --muted:#8b98a9; --llm:#a78bfa; --reflex:#34d399; --amber:#f5b041; --moss:#60a5fa; }
-  * { box-sizing:border-box; margin:0; }
-  body { background:var(--bg); color:var(--ink); font:14px/1.4 -apple-system, "SF Pro Text", Inter, sans-serif; width:1600px; height:900px; padding:40px 48px; }
-  h1 { font-size:30px; letter-spacing:-.02em; }
-  .sub { color:var(--muted); margin-top:4px; font-size:15px; }
-  svg { margin-top:18px; }
-  .box { fill:var(--panel); stroke:var(--rule); stroke-width:1.5; }
-  .zone { fill:none; stroke:var(--rule); stroke-dasharray:6 6; stroke-width:1.5; }
-  .zl { fill:var(--muted); font-size:13px; letter-spacing:.12em; text-transform:uppercase; }
-  .t { fill:var(--ink); font-size:16px; font-weight:600; }
-  .s { fill:var(--muted); font-size:13px; }
-  .mono { font-family: "SF Mono", Menlo, monospace; font-size:12.5px; fill:var(--muted); }
-  .a { stroke:var(--muted); stroke-width:1.6; fill:none; marker-end:url(#m); }
-  .ar { stroke:var(--reflex); stroke-width:2.4; fill:none; marker-end:url(#mr); }
-  .al { stroke:var(--llm); stroke-width:2; fill:none; marker-end:url(#ml); }
-  .lbl { font-size:12.5px; fill:var(--muted); }
-  .lr { font-size:13px; fill:var(--reflex); font-weight:600; }
-  .ll { font-size:13px; fill:var(--llm); font-weight:600; }
+  * { margin:0; box-sizing:border-box; }
+  body { background:#fff; width:1500px; height:820px; padding:56px 64px; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color:#111; }
+  h1 { font-size:22px; font-weight:600; }
+  p { font-size:14px; color:#555; margin-top:6px; }
+  svg { margin-top:36px; }
+  rect { fill:#fff; stroke:#111; stroke-width:1.25; }
+  line, path { stroke:#111; stroke-width:1.25; fill:none; }
+  .d { stroke-dasharray:5 4; }
+  text { font-size:15px; fill:#111; }
+  .n { font-size:12.5px; fill:#555; }
+  .lab { font-size:12.5px; fill:#111; font-style:italic; }
 </style>
 </head>
 <body>
 <h1>Reflex — architecture</h1>
-<div class="sub">Every agent step: snapshot → Moss reflex lookup (~1 ms) → gated replay without the LLM, or LLM fallback + learn.</div>
-<svg width="1504" height="760" viewBox="0 0 1504 760">
+<p>Every step: look up a remembered step in Moss. If it passes the checks, replay it. Otherwise ask the LLM and remember the result.</p>
+<svg width="1372" height="620" viewBox="0 0 1372 620">
   <defs>
-    <marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="#8b98a9"/></marker>
-    <marker id="mr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="#34d399"/></marker>
-    <marker id="ml" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="#a78bfa"/></marker>
+    <marker id="a" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9" style="stroke:#111;stroke-width:1.3;fill:none"/></marker>
   </defs>
 
-  <!-- zones -->
-  <rect class="zone" x="0" y="10" width="560" height="740" rx="14"/>
-  <text class="zl" x="20" y="38">Browser</text>
-  <rect class="zone" x="620" y="10" width="884" height="740" rx="14"/>
-  <text class="zl" x="640" y="38">Node server (long-running)</text>
+  <!-- column labels -->
+  <text class="n" x="0" y="12">BROWSER</text>
+  <text class="n" x="480" y="12">SERVER (Node, long-running)</text>
+  <line class="d" x1="430" y1="0" x2="430" y2="620"/>
 
   <!-- browser -->
-  <rect class="box" x="30" y="60" width="500" height="130" rx="10"/>
-  <text class="t" x="50" y="92">Target web app (Slotly)</text>
-  <text class="s" x="50" y="116">Real DOM: buttons, fields, selects, checkboxes</text>
-  <text class="s" x="50" y="138">Variants: normal · shuffled layout · renamed labels</text>
-  <text class="mono" x="50" y="168">agent sees it only via DOM snapshot + events</text>
+  <rect x="0" y="40" width="360" height="80"/>
+  <text x="20" y="74">Web app</text>
+  <text class="n" x="20" y="98">the page the agent operates (DOM)</text>
 
-  <rect class="box" x="30" y="250" width="500" height="150" rx="10"/>
-  <text class="t" x="50" y="282">Snapshot → templated state key</text>
-  <text class="mono" x="50" y="308">ROUTE /book/details · HEADING Your details</text>
-  <text class="mono" x="50" y="328">textbox "Full name" = {name}</text>
-  <text class="mono" x="50" y="348">textbox "Email" = (empty) · button "Continue" (disabled)</text>
-  <text class="s" x="50" y="380">slot values (Priya, Thursday…) → {name}, {day}: runs generalise</text>
-
-  <rect class="box" x="30" y="460" width="500" height="270" rx="10"/>
-  <text class="t" x="50" y="492">Agent loop (per step)</text>
-  <text class="s" x="50" y="520">1. lookup reflex</text>
-  <text class="s" x="50" y="544">2. resolve templated target → exactly one element?</text>
-  <text class="s" x="50" y="568">3. act (click / type / select / check)</text>
-  <text class="s" x="50" y="592">4. verify post-state (route + heading)</text>
-  <text class="s" x="50" y="616">5. feedback / learn</text>
-  <text class="lr" x="50" y="656">⚡ reflex: ~10–20 ms per step, no LLM</text>
-  <text class="ll" x="50" y="680">🧠 LLM step: 0.5–3 s</text>
-  <text style="font-size:13px;fill:#f5b041;font-weight:600" x="50" y="704">↩ fallback: reflex rejected → LLM for that one step</text>
+  <rect x="0" y="250" width="360" height="120"/>
+  <text x="20" y="284">Agent loop</text>
+  <text class="n" x="20" y="308">1. snapshot page → state text</text>
+  <text class="n" x="20" y="328">2. look up reflex</text>
+  <text class="n" x="20" y="348">3. act, then check where it landed</text>
 
   <!-- server -->
-  <rect class="box" x="660" y="60" width="380" height="120" rx="10"/>
-  <text class="t" x="680" y="92">Embedder</text>
-  <text class="s" x="680" y="116">MiniLM-L6-v2 q8 (transformers.js, local)</text>
-  <text class="mono" x="680" y="140">384-d · ~6 ms per state key</text>
+  <rect x="480" y="250" width="220" height="120"/>
+  <text x="500" y="284">Embedder</text>
+  <text class="n" x="500" y="308">MiniLM, local</text>
+  <text class="n" x="500" y="328">~6 ms</text>
 
-  <rect class="box" x="660" y="230" width="380" height="200" rx="10" style="stroke:#60a5fa"/>
-  <text class="t" x="680" y="262" style="fill:#60a5fa">Moss session (in-process index)</text>
-  <text class="s" x="680" y="288">client.session("reflex-lib", "custom")</text>
-  <text class="mono" x="680" y="314">20,016 reflexes (live + synthetic)</text>
-  <text class="mono" x="680" y="336">query top-10 + flow filter: p50 0.8 ms</text>
-  <text class="mono" x="680" y="358">brute-force scan:          p50 9.9 ms</text>
-  <text class="mono" x="680" y="380">add new reflex: ~65 ms → live instantly</text>
-  <text class="s" x="680" y="410">cloud pushIndex only for background sync</text>
+  <rect x="780" y="250" width="240" height="120"/>
+  <text x="800" y="284">Moss index</text>
+  <text class="n" x="800" y="308">in-process session</text>
+  <text class="n" x="800" y="328">20k steps · ~1 ms lookup</text>
 
-  <rect class="box" x="660" y="480" width="380" height="250" rx="10"/>
-  <text class="t" x="680" y="512">Gates</text>
-  <text class="s" x="680" y="540">① exact cosine ≥ τ (0.90) after Moss recall</text>
-  <text class="s" x="680" y="564">② exact form-state match</text>
-  <text class="mono" x="700" y="586">("name empty" vs "filled" ≈ 0.991 cos)</text>
-  <text class="s" x="680" y="612">③ target resolves on live page</text>
-  <text class="s" x="680" y="636">④ post-condition after acting</text>
-  <text class="s" x="680" y="668">failing reflexes are penalised / pruned</text>
-  <text class="s" x="680" y="692">same-state relearn overwrites (dedupe)</text>
+  <rect x="1100" y="250" width="272" height="120"/>
+  <text x="1120" y="284">Checks</text>
+  <text class="n" x="1120" y="308">similar enough · same form state</text>
+  <text class="n" x="1120" y="328">target exists · lands correctly</text>
 
-  <rect class="box" x="1100" y="60" width="380" height="170" rx="10" style="stroke:#a78bfa"/>
-  <text class="t" x="1120" y="92" style="fill:#a78bfa">Groq LLM</text>
-  <text class="s" x="1120" y="116">gpt-oss-120b (rotates to 20b / qwen on 429)</text>
-  <text class="s" x="1120" y="140">parse: instruction → slots (1 call / run)</text>
-  <text class="s" x="1120" y="164">step: page → one tool call</text>
-  <text class="mono" x="1120" y="192">click · type · select · check · done</text>
+  <rect x="1100" y="480" width="272" height="100"/>
+  <text x="1120" y="514">LLM (Groq)</text>
+  <text class="n" x="1120" y="538">only when no reflex passes</text>
 
-  <rect class="box" x="1100" y="290" width="380" height="140" rx="10"/>
-  <text class="t" x="1120" y="322">Reflex record</text>
-  <text class="mono" x="1120" y="348">flow: book_meeting(day,email,…)</text>
-  <text class="mono" x="1120" y="370">pre:  templated state key</text>
-  <text class="mono" x="1120" y="392">act:  type {name} → "Full name"</text>
-  <text class="mono" x="1120" y="414">post: /book/details|Your details</text>
+  <!-- flows -->
+  <line x1="180" y1="120" x2="180" y2="250" marker-end="url(#a)"/>
+  <text class="lab" x="192" y="190">snapshot</text>
 
-  <rect class="box" x="1100" y="480" width="380" height="250" rx="10"/>
-  <text class="t" x="1120" y="512">Measured</text>
-  <text class="s" x="1120" y="542">Run 1 cold:   11.5 s · 11 LLM calls</text>
-  <text class="lr" x="1120" y="566">Run 2 warm:   1.8 s · 1 LLM call (10/10 ⚡)</text>
-  <text class="s" x="1120" y="590">Shuffled layout:  0.9 s · all ⚡</text>
-  <text class="s" x="1120" y="614">Renamed labels:  10.7 s · 3⚡ 5🧠 1↩</text>
-  <text class="lr" x="1120" y="638">Renamed again:  1.05 s · all ⚡ (relearned)</text>
-  <text class="s" x="1120" y="676">Moss vs brute force @20k: ~12× at p50</text>
+  <line x1="360" y1="300" x2="480" y2="300" marker-end="url(#a)"/>
+  <text class="lab" x="378" y="290">lookup</text>
 
-  <!-- arrows -->
-  <path class="a" d="M280 190 L280 250"/>
-  <path class="a" d="M280 400 L280 460"/>
-  <path class="a" d="M850 180 L850 230"/>
-  <path class="a" d="M850 430 L850 480"/>
-  <!-- lookup: loop -> embedder -->
-  <path class="a" d="M530 510 H588 V120 H660"/><text class="lbl" x="582" y="330" transform="rotate(-90 582 330)" text-anchor="middle">lookup(state key)</text>
-  <!-- match: gates -> loop -->
-  <path class="ar" d="M660 640 H530"/><text class="lr" x="548" y="632">match</text>
-  <!-- replay: loop -> target app -->
-  <path class="ar" d="M530 690 H546 V125 H530"/><text class="lr" x="541" y="420" transform="rotate(-90 541 420)" text-anchor="middle">⚡ replay (no LLM)</text>
-  <!-- no match: gates -> groq -->
-  <path class="al" d="M1040 560 H1082 V150 H1100"/><text class="ll" x="1076" y="470" transform="rotate(-90 1076 470)" text-anchor="middle">no match</text>
-  <!-- llm action: groq -> loop -->
-  <path class="al" d="M1290 60 V50 H606 V580 H530"/><text class="ll" x="1000" y="44">🧠 action</text>
-  <!-- learn: loop -> moss -->
-  <path class="a" d="M280 730 V744 H1060 V330 H1040"/><text class="lbl" x="700" y="738">learn: pre-state → action → post-state</text>
+  <line x1="700" y1="310" x2="780" y2="310" marker-end="url(#a)"/>
+  <line x1="1020" y1="310" x2="1100" y2="310" marker-end="url(#a)"/>
+
+  <!-- pass: replay -->
+  <path d="M1236 250 V180 H280 V120" marker-end="url(#a)"/>
+  <text class="lab" x="640" y="170">pass → replay action, no LLM call</text>
+
+  <!-- fail: llm -->
+  <line x1="1236" y1="370" x2="1236" y2="480" marker-end="url(#a)"/>
+  <text class="lab" x="1248" y="430">fail</text>
+
+  <path d="M1100 530 H100 V370" marker-end="url(#a)"/>
+  <text class="lab" x="560" y="520">action from LLM</text>
+
+  <!-- learn -->
+  <path d="M260 370 V440 H900 V370" marker-end="url(#a)"/>
+  <text class="lab" x="480" y="430">learn: state → action → result</text>
 </svg>
 </body>
 </html>
