@@ -1,20 +1,23 @@
 @import "tailwindcss";
 
-/* Reflex: a lab-instrument readout. Light paper, graphite ink, one accent (reflex). */
+/*
+  Reflex. One white surface, graphite ink, hairline rules between regions.
+  Exactly one accent: --reflex marks a step that was replayed instead of reasoned.
+*/
 :root {
-  --paper: #f5f5f2;
+  --paper: #ffffff;
   --sheet: #ffffff;
-  --ink: #17191c;
-  --graphite: #4d535b;
-  --muted: #6b7079;
-  --faint: #9a9ea6;
-  --rule: #d6d7d2;
-  --rule-soft: #e6e7e3;
-  --wash: #ecece8;
-  --llm: #3a3f47;
-  --reflex: #0e7a5c;
-  --reflex-wash: #e3f1ec;
-  --fallback: #a3660a;
+  --ink: #16181d;
+  --graphite: #474c55;
+  --muted: #6e737c;
+  --faint: #a3a7ae;
+  --rule: #dcdde0;
+  --rule-soft: #ececee;
+  --wash: #f3f3f4;
+  --llm: #16181d;
+  --reflex: #2743c4;
+  --reflex-wash: #e9edfb;
+  --fallback: #474c55;
   --danger: #b3261e;
 }
 
@@ -45,19 +48,19 @@ body {
 
 body {
   font-family: var(--font-ui), system-ui, sans-serif;
+  font-feature-settings: "ss01";
 }
 
 .tnum {
   font-variant-numeric: tabular-nums;
 }
 
-/* Micro label: mono, uppercase, loosely tracked. Used for column heads only. */
-.rx-label {
+/* Source words in the step log: mono small caps. */
+.rx-smcp {
   font-family: var(--font-code), ui-monospace, monospace;
-  font-size: 10.5px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
+  font-variant-caps: all-small-caps;
+  font-size: 14.5px;
+  letter-spacing: 0.07em;
 }
 
 ::selection {
@@ -67,7 +70,7 @@ body {
 
 :focus-visible {
   outline: 1.5px solid var(--ink);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
 .rx-scroll {
@@ -75,7 +78,7 @@ body {
   scrollbar-color: var(--rule) transparent;
 }
 
-/* New timeline rows appear without movement; just a quick fade. */
+/* New log lines appear without movement; just a quick fade. */
 @keyframes rx-row-in {
   from {
     opacity: 0;
@@ -88,17 +91,17 @@ body {
   animation: rx-row-in 160ms ease-out both;
 }
 
-/* A reflex firing: the row is briefly marked, then settles. */
+/* A reflex firing: its source word lands in accent after a brief ink beat. */
 @keyframes rx-flash {
   from {
-    background-color: var(--reflex-wash);
+    color: var(--ink);
   }
   to {
-    background-color: transparent;
+    color: var(--reflex);
   }
 }
 .rx-flash {
-  animation: rx-flash 900ms ease-out both;
+  animation: rx-flash 500ms ease-out both;
 }
 
 @keyframes rx-pulse {
@@ -107,31 +110,31 @@ body {
     opacity: 1;
   }
   50% {
-    opacity: 0.25;
+    opacity: 0.3;
   }
 }
 .rx-pulse {
   animation: rx-pulse 1s steps(2, jump-none) infinite;
 }
 
-/* Threshold slider */
+/* Threshold slider: a hairline with a thin ink tick. */
 input[type="range"].rx-range {
   appearance: none;
   height: 1px;
   background: var(--graphite);
+  cursor: pointer;
 }
 input[type="range"].rx-range::-webkit-slider-thumb {
   appearance: none;
-  width: 7px;
+  width: 3px;
   height: 14px;
-  border-radius: 1px;
   background: var(--ink);
 }
 input[type="range"].rx-range::-moz-range-thumb {
-  width: 7px;
+  width: 3px;
   height: 14px;
   border: 0;
-  border-radius: 1px;
+  border-radius: 0;
   background: var(--ink);
 }
 

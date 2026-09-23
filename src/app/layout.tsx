@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { IBM_Plex_Mono, Instrument_Sans } from "next/font/google";
 import "./globals.css";
 
-const ui = IBM_Plex_Sans({
+const ui = Instrument_Sans({
   variable: "--font-ui",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
@@ -11,7 +11,7 @@ const ui = IBM_Plex_Sans({
 const code = IBM_Plex_Mono({
   variable: "--font-code",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {

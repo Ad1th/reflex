@@ -5,22 +5,20 @@ import { describeAction } from "@/lib/templating";
 import type { StepEvent } from "@/lib/types";
 import { fmtMs, REJECT_TEXT, type RunRecord } from "./model";
 
-const SOURCE = {
-  llm: { text: "LLM", square: "bg-llm", ink: "text-llm" },
-  reflex: { text: "REFLEX", square: "bg-reflex", ink: "text-reflex" },
-  fallback: { text: "FALLBACK", square: "bg-fallback", ink: "text-fallback" },
-} as const;
+type Kind = "llm" | "reflex" | "fallback";
 
-type Kind = keyof typeof SOURCE;
+const WORD: Record<Kind, string> = { llm: "llm", reflex: "reflex", fallback: "fallback" };
 
-const GRID = "grid grid-cols-[24px_88px_1fr_132px] gap-3 px-3";
+const GRID = "grid grid-cols-[22px_64px_minmax(0,1fr)_auto] gap-x-3";
 
-export function SourceMark({ kind }: { kind: Kind }) {
-  const s = SOURCE[kind];
+export function SourceMark({ kind, flash }: { kind: Kind; flash?: boolean }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 font-mono text-[11px] font-medium tracking-[0.04em] ${s.ink}`}>
-      <span aria-hidden className={`size-[7px] shrink-0 ${s.square}`} />
-      {s.text}
+    <span
+      className={`rx-smcp leading-[20px] ${
+        kind === "reflex" ? `text-reflex ${flash ? "rx-flash" : ""}` : kind === "fallback" ? "text-graphite italic" : "text-ink"
+      }`}
+    >
+      {WORD[kind]}
     </span>
   );
 }
@@ -43,18 +41,18 @@ function Row({
   flash?: boolean;
 }) {
   return (
-    <li className={`rx-row ${GRID} items-baseline border-b border-rule-soft py-[4px] ${flash ? "rx-flash" : ""}`}>
-      <span className="tnum text-right font-mono text-[11px] text-faint">{n}</span>
-      <SourceMark kind={kind} />
+    <li className={`rx-row ${GRID} items-baseline py-[3px]`}>
+      <span className="tnum text-right font-mono text-[11.5px] leading-[20px] text-faint">{n}</span>
+      <SourceMark kind={kind} flash={flash} />
       <span className="min-w-0">
-        <span className="block truncate font-mono text-[12px] leading-[18px] text-ink" title={main}>
+        <span className="block truncate text-[13.5px] leading-[20px] text-ink" title={main}>
           {main}
         </span>
-        {sub && <span className="block truncate text-[11.5px] leading-4 text-fallback">{sub}</span>}
+        {sub && <span className="block text-[12.5px] leading-[18px] text-graphite italic">{sub}</span>}
       </span>
-      <span className="tnum text-right font-mono text-[12px] leading-[18px] whitespace-nowrap">
-        {msSub && <span className="mr-2 text-[10.5px] text-faint">{msSub}</span>}
-        <span className={`inline-block min-w-[44px] ${kind === "reflex" ? "font-medium text-reflex" : "text-ink"}`}>{ms}</span>
+      <span className="tnum text-right font-mono text-[12px] leading-[20px] whitespace-nowrap">
+        {msSub && <span className="mr-3 text-faint">{msSub}</span>}
+        <span className={`inline-block min-w-[48px] ${kind === "reflex" ? "text-reflex" : "text-ink"}`}>{ms}</span>
       </span>
     </li>
   );
@@ -63,15 +61,16 @@ function Row({
 function stepRow(s: StepEvent) {
   const t = s.timings;
   const desc = describeAction(s.action);
+  const key = `${s.runId}-${s.index}`;
   if (s.source === "reflex") {
     return (
       <Row
-        key={`${s.runId}-${s.index}`}
+        key={key}
         n={String(s.index + 1)}
         kind="reflex"
         main={desc}
         ms={fmtMs(t.lookupMs ?? t.totalMs)}
-        msSub={t.mossMs != null ? `moss ${t.mossMs.toFixed(1)}ms` : undefined}
+        msSub={t.mossMs != null ? `moss ${t.mossMs.toFixed(1)}` : undefined}
         flash
       />
     );
@@ -80,18 +79,16 @@ function stepRow(s: StepEvent) {
     const why = s.rejectReason ? REJECT_TEXT[s.rejectReason] : "reflex rejected";
     return (
       <Row
-        key={`${s.runId}-${s.index}`}
+        key={key}
         n={String(s.index + 1)}
         kind="fallback"
         main={desc}
-        sub={`Reflex rejected: ${why}${s.score != null ? ` (score ${s.score.toFixed(2)})` : ""}. LLM took over.`}
+        sub={`Reflex rejected: ${why}${s.score != null ? ` (score ${s.score.toFixed(2)})` : ""}. The LLM took over.`}
         ms={fmtMs(t.llmMs ?? t.totalMs)}
       />
     );
   }
-  return (
-    <Row key={`${s.runId}-${s.index}`} n={String(s.index + 1)} kind="llm" main={desc} ms={fmtMs(t.llmMs ?? t.totalMs)} />
-  );
+  return <Row key={key} n={String(s.index + 1)} kind="llm" main={desc} ms={fmtMs(t.llmMs ?? t.totalMs)} />;
 }
 
 export function Timeline({ run, isLatest }: { run?: RunRecord; isLatest: boolean }) {
@@ -111,55 +108,48 @@ export function Timeline({ run, isLatest }: { run?: RunRecord; isLatest: boolean
     : undefined;
 
   const reflexes = run ? run.steps.filter((s) => s.source === "reflex").length : 0;
-  const llm = run ? run.steps.length - reflexes : 0;
+  const reasoned = run ? run.steps.length - reflexes : 0;
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col border-t border-ink">
-      <div className="flex h-9 shrink-0 items-baseline gap-4 pt-2.5">
-        <h2 className="text-[13px] font-semibold text-ink">{run ? `Run ${run.n}, step by step` : "Steps"}</h2>
+    <section className="flex min-h-0 flex-1 flex-col border-t border-rule pt-5">
+      <div className="flex shrink-0 items-baseline gap-4 pb-2">
+        <h2 className="text-[15px] font-medium text-ink">{run ? `Run ${run.n}` : "Steps"}</h2>
         {run && (
-          <span className="tnum font-mono text-[11.5px] text-muted">
-            <span className="text-llm">{llm} llm</span>
-            <span className="text-faint"> / </span>
-            <span className="text-reflex">{reflexes} reflex</span>
+          <span className="text-[13px] text-muted">
+            <span className="tnum text-ink">{reasoned}</span> reasoned by the LLM,{" "}
+            <span className="tnum text-reflex">{reflexes}</span> replayed as reflexes
           </span>
         )}
       </div>
-      <div className={`${GRID} shrink-0 border-b border-rule py-1`}>
-        <span className="rx-label text-right">#</span>
-        <span className="rx-label">Source</span>
-        <span className="rx-label">Action</span>
-        <span className="rx-label text-right">Time</span>
-      </div>
       <ol ref={listRef} className="rx-scroll min-h-0 flex-1 overflow-y-auto">
         {!run && (
-          <li className="max-w-[440px] px-3 py-5 text-[13px] leading-[1.55] text-graphite">
-            Pick a task and run the agent. The first run reasons through every step with the LLM; run a similar
-            task again and those steps come back as reflexes.
+          <li className="max-w-[46ch] py-2 text-[14px] leading-[1.55] text-graphite">
+            Pick a task and run the agent. The first run reasons through every step with the LLM. Run a similar task
+            again and those steps come back as reflexes.
           </li>
         )}
-        {run && (
-          <Row n="0" kind="llm" main="parse task → slots" ms={run.parseMs != null ? fmtMs(run.parseMs) : "…"} />
-        )}
+        {run && <Row n="0" kind="llm" main="Read the task into fields" ms={run.parseMs != null ? fmtMs(run.parseMs) : "…"} />}
         {run && slotText && (
-          <li className={`rx-row ${GRID} border-b border-rule-soft py-[5px]`}>
+          <li className={`rx-row ${GRID} pb-1.5`}>
             <span />
             <span />
-            <span className="col-span-2 truncate font-mono text-[11px] text-muted" title={slotText}>
+            <span className="col-span-2 truncate font-mono text-[11.5px] leading-[18px] text-muted" title={slotText}>
               {slotText}
             </span>
           </li>
         )}
         {run?.steps.map(stepRow)}
         {run?.status === "running" && run.phase !== "parsing" && (
-          <li className={`${GRID} items-center py-2 text-[12px] text-muted`}>
+          <li className={`${GRID} items-baseline py-[3px] text-[13.5px] leading-[20px] text-muted`}>
             <span />
-            <span aria-hidden className="rx-pulse size-[7px] bg-muted" />
+            <span aria-hidden className="rx-pulse rx-smcp">
+              …
+            </span>
             <span>{run.phase === "learning" ? "Saving new steps as reflexes" : "Looking up the next step"}</span>
           </li>
         )}
         {run && run.status !== "running" && (
-          <li className={`${GRID} py-2 text-[12px]`}>
+          <li className={`${GRID} pt-2 pb-1 text-[13.5px]`}>
             <span />
             <span />
             <span className="col-span-2">

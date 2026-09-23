@@ -13,23 +13,7 @@ export function speedupFor(r: RunRecord, runs: RunRecord[]) {
   return x >= 1.5 ? { x, first } : undefined;
 }
 
-/** Axis ticks in ms: a 1/2/5 step giving at most 5 ticks up to and including `maxMs`. */
-function ticksFor(maxMs: number) {
-  const raw = maxMs / 4;
-  const pow = 10 ** Math.floor(Math.log10(raw));
-  const step = [1, 2, 5, 10].map((m) => m * pow).find((s) => s >= raw) ?? raw;
-  const top = Math.ceil(maxMs / step) * step;
-  const out: number[] = [];
-  for (let t = 0; t <= top + step / 2; t += step) out.push(t);
-  return { ticks: out, top };
-}
-
-function tickText(ms: number) {
-  if (ms === 0) return "0";
-  return ms < 1000 ? `${ms}ms` : `${+(ms / 1000).toFixed(1)}s`;
-}
-
-const GRID = "grid grid-cols-[46px_58px_40px_1fr] items-center gap-3";
+const GRID = "grid grid-cols-[22px_140px_minmax(0,1fr)_52px_56px] items-baseline gap-x-3";
 
 export function RunHistory({
   runs,
@@ -50,47 +34,35 @@ export function RunHistory({
 }) {
   const wall = (r: RunRecord) => r.wallMs ?? Math.max(0, now - r.startedAt);
   const max = Math.max(1000, ...runs.map(wall));
-  const { ticks, top } = ticksFor(max);
   const shown = runs.slice(-5);
   const latest = runs.at(-1);
   const best = latest ? speedupFor(latest, runs) : undefined;
 
   return (
-    <section className="flex shrink-0 flex-col border-t border-ink pt-2.5 pb-1">
-      <div className="mb-1.5 flex items-baseline gap-4">
-        <h2 className="text-[13px] font-semibold text-ink">Agent time per run</h2>
-        <span className="flex items-center gap-3 text-[11.5px] text-muted">
-          <span className="flex items-center gap-1.5">
-            <span aria-hidden className="size-[7px] bg-llm" /> LLM steps
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span aria-hidden className="size-[7px] bg-reflex" /> Reflex steps
-          </span>
+    <section className="flex shrink-0 flex-col border-t border-rule pt-5 pb-7">
+      <div className="flex items-baseline gap-4 pb-2">
+        <h2 className="text-[15px] font-medium text-ink">Runs</h2>
+        <span className="text-[13px] text-muted">
+          Agent time, split into <span className="text-ink">LLM</span> and <span className="text-reflex">reflex</span>{" "}
+          steps
         </span>
         <button
           onClick={onForget}
           disabled={!canForget || forgetting}
-          className="ml-auto text-[12px] text-muted underline decoration-rule underline-offset-[3px] hover:text-danger hover:decoration-danger disabled:opacity-40"
+          className="ml-auto text-[13px] text-muted underline decoration-rule underline-offset-4 hover:text-danger hover:decoration-danger disabled:opacity-40"
         >
           {forgetting ? "Forgetting…" : "Forget everything"}
         </button>
       </div>
 
-      <div className={`${GRID} border-b border-rule px-1 py-1`}>
-        <span className="rx-label">Run</span>
-        <span className="rx-label text-right">Time</span>
-        <span className="rx-label text-right">LLM</span>
-        <span className="rx-label">Steps by source</span>
-      </div>
-
       {shown.length === 0 && (
-        <p className="px-1 py-3 text-[12.5px] text-muted">Each run adds a row here, so you can compare them.</p>
+        <p className="py-1 text-[14px] text-muted">Each run adds a line here, so you can compare them.</p>
       )}
       <ul>
         {shown.map((r) => {
           const total = Math.max(1, r.steps.length);
           const reflexShare = stepReflexCount(r.steps) / total;
-          const w = (wall(r) / top) * 100;
+          const w = (wall(r) / max) * 100;
           const calls = runLlmCalls(r);
           const isSel = selected === r.n;
           return (
@@ -98,59 +70,38 @@ export function RunHistory({
               <button
                 onClick={() => onSelect(r.n)}
                 aria-pressed={isSel}
-                className={`${GRID} tnum w-full border-b border-rule-soft px-1 py-[3px] text-left font-mono text-[12px] ${
-                  isSel ? "bg-wash" : "hover:bg-wash/60"
-                }`}
+                className={`${GRID} group w-full py-[3px] text-left text-[13px] leading-[20px]`}
               >
-                <span className={isSel ? "font-medium text-ink" : "text-graphite"}>
-                  {r.n}
+                <span className={`tnum text-right font-mono text-[11.5px] ${isSel ? "text-ink" : "text-faint"}`}>{r.n}</span>
+                <span className={`truncate ${isSel ? "text-ink" : "text-muted"} group-hover:text-ink`}>
+                  {r.slots?.name ?? "…"}
                   {r.variant !== "normal" && (
-                    <span className="ml-1 text-[10.5px] text-fallback" title="Chaos variant">
-                      {r.variant === "shuffled" ? "S" : "R"}
-                    </span>
+                    <span className="ml-1.5 text-faint italic">{r.variant === "shuffled" ? "shuffled" : "renamed"}</span>
                   )}
                 </span>
-                <span className="text-right text-ink">{fmtSec(wall(r))}</span>
-                <span className="text-right text-graphite">{calls}</span>
-                <svg width="100%" height="8" aria-hidden className="overflow-visible">
-                  <rect x="0" y="0" width={`${w * (1 - reflexShare)}%`} height="8" fill="var(--llm)" />
-                  <rect x={`${w * (1 - reflexShare)}%`} y="0" width={`${w * reflexShare}%`} height="8" fill="var(--reflex)" />
+                <svg width="100%" height="4" aria-hidden className="self-center overflow-visible">
+                  <rect x="0" y="0" width={`${w * (1 - reflexShare)}%`} height="4" fill="var(--llm)" opacity={isSel ? 1 : 0.85} />
+                  <rect x={`${w * (1 - reflexShare)}%`} y="0" width={`${w * reflexShare}%`} height="4" fill="var(--reflex)" />
                 </svg>
+                <span className={`tnum text-right font-mono text-[12px] ${isSel ? "text-ink underline decoration-[1.5px] underline-offset-4" : "text-ink"}`}>
+                  {fmtSec(wall(r))}
+                </span>
+                <span className="tnum text-right text-[12.5px] text-muted">
+                  <span className="font-mono text-[12px]">{calls}</span> {calls === 1 ? "call" : "calls"}
+                </span>
               </button>
             </li>
           );
         })}
       </ul>
 
-      {shown.length > 0 && (
-        <div className={`${GRID} px-1`}>
-          <span />
-          <span />
-          <span />
-          <div className="relative h-5">
-            {ticks.map((t) => {
-              const x = (t / top) * 100;
-              return (
-                <span key={t} className="absolute top-0 flex flex-col items-center" style={{ left: `${x}%`, transform: "translateX(-50%)" }}>
-                  <span className="h-1 w-px bg-graphite" />
-                  <span className="tnum font-mono text-[10px] leading-4 text-muted">{tickText(t)}</span>
-                </span>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      <p className="mt-1 min-h-[20px] px-1 text-[13px] leading-5 text-graphite">
+      <p className="mt-3 min-h-[22px] text-[14px] leading-[22px] text-graphite">
         {best ? (
           <>
-            Run {latest!.n} took <span className="tnum font-mono text-ink">{fmtSec(latest!.wallMs!)}</span> against{" "}
-            <span className="tnum font-mono text-ink">{fmtSec(best.first.wallMs!)}</span> for run {best.first.n} on the
-            same kind of task:{" "}
-            <span className="tnum font-mono font-medium text-reflex">
-              {best.x >= 10 ? Math.round(best.x) : best.x.toFixed(1)}× faster
-            </span>
-            .
+            Run {latest!.n} took <span className="tnum font-mono text-[13px] text-ink">{fmtSec(latest!.wallMs!)}</span>{" "}
+            against <span className="tnum font-mono text-[13px] text-ink">{fmtSec(best.first.wallMs!)}</span> for run{" "}
+            {best.first.n} on the same kind of task, so it was{" "}
+            <span className="tnum text-reflex">{best.x >= 10 ? Math.round(best.x) : best.x.toFixed(1)}× faster</span>.
           </>
         ) : runs.length > 0 ? (
           <span className="text-muted">Run the same kind of task twice to see the speedup.</span>

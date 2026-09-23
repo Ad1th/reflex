@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { runTask } from "@/agent/loop";
 import type { StepEvent } from "@/lib/types";
 import { SlotlyApp } from "@/target/SlotlyApp";
-import { BrowserFrame } from "@/ui/BrowserFrame";
+import { AppPane } from "@/ui/AppPane";
 import { Controls } from "@/ui/Controls";
 import { Header } from "@/ui/Header";
 import { median, PRESETS, type Phase, type RunRecord, type Variant } from "@/ui/model";
@@ -172,45 +172,44 @@ export default function Home() {
   const elapsed = latest ? (latest.wallMs ?? Math.max(0, now - latest.startedAt)) : undefined;
 
   return (
-    <div className="flex h-dvh min-h-[760px] flex-col overflow-hidden">
-      <Header
-        stats={{
-          librarySize: stats?.librarySize,
-          live: stats?.live,
-          synthetic: stats?.synthetic,
-          llmAvoided: reflexSteps.length,
-          timeSavedMs: reflexSteps.length * avgLlm,
-          mossP50: median(mossTimes),
-        }}
-        onOpenMoss={() => setMossOpen((o) => !o)}
-      />
-      <main className="relative flex min-h-0 flex-1 gap-7 px-6 pt-5 pb-4">
-        <div className="flex min-h-0 min-w-0 basis-[56%] flex-col">
-          <BrowserFrame
-            route={route}
-            variant={variant}
-            phase={latest?.phase}
-            status={latest?.status}
-            elapsedMs={elapsed}
-            containerRef={containerRef}
-          >
-            <SlotlyApp key={`${appKey}-${variant}`} variant={variant} onRouteChange={setRoute} />
-          </BrowserFrame>
-        </div>
-        <div className="flex min-h-0 min-w-0 basis-[44%] flex-col">
-          <Controls
-            instruction={instruction}
-            setInstruction={setInstruction}
-            variant={variant}
-            setVariant={setVariant}
-            turbo={turbo}
-            setTurbo={setTurbo}
-            threshold={threshold}
-            setThreshold={setThreshold}
-            running={running}
-            onRun={run}
-            onStop={stop}
-          />
+    <div className="grid h-dvh min-h-[760px] grid-cols-[minmax(0,1fr)_minmax(520px,620px)] overflow-hidden">
+      <AppPane
+        route={route}
+        variant={variant}
+        phase={latest?.phase}
+        status={latest?.status}
+        elapsedMs={elapsed}
+        containerRef={containerRef}
+      >
+        <SlotlyApp key={`${appKey}-${variant}`} variant={variant} onRouteChange={setRoute} />
+      </AppPane>
+      <main className="relative flex min-h-0 min-w-0 flex-col gap-6 border-l border-rule px-10 pt-9">
+        <Header
+          stats={{
+            librarySize: stats?.librarySize,
+            live: stats?.live,
+            synthetic: stats?.synthetic,
+            llmAvoided: reflexSteps.length,
+            timeSavedMs: reflexSteps.length * avgLlm,
+            mossP50: median(mossTimes),
+          }}
+          mossOpen={mossOpen}
+          onOpenMoss={() => setMossOpen((o) => !o)}
+        />
+        <Controls
+          instruction={instruction}
+          setInstruction={setInstruction}
+          variant={variant}
+          setVariant={setVariant}
+          turbo={turbo}
+          setTurbo={setTurbo}
+          threshold={threshold}
+          setThreshold={setThreshold}
+          running={running}
+          onRun={run}
+          onStop={stop}
+        />
+        <div className="-mt-1 flex min-h-0 flex-1 flex-col">
           <Timeline run={shown} isLatest={shown === latest} />
           <RunHistory
             runs={runs}

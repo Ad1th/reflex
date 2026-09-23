@@ -1,5 +1,16 @@
 import { PRESETS, VARIANTS, type Variant } from "./model";
 
+/** Text option: the active one is ink and underlined, the rest are quiet. */
+function optionCls(on: boolean) {
+  return `underline-offset-[5px] disabled:opacity-40 ${
+    on ? "text-ink underline decoration-ink decoration-[1.5px]" : "text-muted hover:text-ink"
+  }`;
+}
+
+function presetCls(on: boolean) {
+  return `disabled:opacity-40 ${on ? "text-ink" : "text-muted hover:text-ink"}`;
+}
+
 export function Controls({
   instruction,
   setInstruction,
@@ -26,9 +37,9 @@ export function Controls({
   onStop: () => void;
 }) {
   return (
-    <section className="flex shrink-0 flex-col gap-2.5 pb-4">
-      <label htmlFor="rx-instruction" className="sr-only">
-        Task for the agent
+    <section className="flex shrink-0 flex-col">
+      <label htmlFor="rx-instruction" className="text-[13px] text-muted">
+        Task
       </label>
       <textarea
         id="rx-instruction"
@@ -39,41 +50,39 @@ export function Controls({
         }}
         rows={2}
         placeholder="Tell the agent what to book"
-        className="block w-full resize-none rounded-[2px] border border-rule bg-sheet px-3 py-2 text-[14.5px] leading-[1.45] text-ink placeholder:text-faint focus:border-ink focus:outline-none"
+        className="mt-1.5 block w-full resize-none border-0 border-b border-rule bg-transparent px-0 pt-0 pb-3 text-[19px] leading-[1.42] tracking-[-0.005em] text-ink placeholder:text-faint focus:border-ink focus:outline-none"
       />
 
-      <div className="flex items-center gap-4">
-        <div className="flex min-w-0 items-baseline gap-3.5 text-[12.5px]">
-          {PRESETS.map((p) => {
-            const active = instruction === p.text;
-            return (
-              <button
-                key={p.key}
-                onClick={() => setInstruction(p.text)}
-                disabled={running}
-                title={p.text}
-                className={`whitespace-nowrap border-b pb-px disabled:opacity-40 ${
-                  active ? "border-ink text-ink" : "border-transparent text-muted hover:border-rule hover:text-ink"
-                }`}
-              >
-                <span className="font-mono text-[11.5px] font-medium">{p.key}</span> {p.who}, {p.what.toLowerCase()}
-              </button>
-            );
-          })}
+      <div className="mt-3.5 flex items-center gap-5">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-5 gap-y-1 text-[13px]">
+          {PRESETS.map((p) => (
+            <button
+              key={p.key}
+              onClick={() => setInstruction(p.text)}
+              disabled={running}
+              title={p.text}
+              className={`whitespace-nowrap ${presetCls(instruction === p.text)}`}
+            >
+              <span className="tnum mr-1.5 font-mono text-[11.5px] text-faint">{p.key}</span>
+              <span className={instruction === p.text ? optionCls(true) : undefined}>
+                {p.who}, {p.what.toLowerCase()}
+              </span>
+            </button>
+          ))}
         </div>
         <div className="ml-auto shrink-0">
           {running ? (
             <button
               onClick={onStop}
-              className="flex h-8 items-center gap-2 rounded-[2px] border border-danger px-3.5 text-[13px] font-medium text-danger hover:bg-danger hover:text-white"
+              className="h-10 border border-ink px-6 text-[14px] font-medium text-ink hover:bg-ink hover:text-paper"
             >
-              <span aria-hidden className="size-2 bg-current" /> Stop
+              Stop
             </button>
           ) : (
             <button
               onClick={onRun}
               disabled={!instruction.trim()}
-              className="flex h-8 items-center gap-2 rounded-[2px] bg-ink px-4 text-[13px] font-medium text-paper hover:bg-graphite disabled:opacity-40"
+              className="h-10 bg-ink px-6 text-[14px] font-medium text-paper hover:bg-graphite disabled:opacity-40"
             >
               Run agent
             </button>
@@ -81,49 +90,36 @@ export function Controls({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-rule-soft pt-2.5 text-[12.5px]">
-        <fieldset className="flex items-center gap-2.5" disabled={running}>
+      <div className="mt-5 flex items-baseline gap-x-5 text-[13px] whitespace-nowrap">
+        <fieldset className="flex items-baseline gap-2.5" disabled={running}>
           <legend className="float-left text-muted">Chaos</legend>
-          <div className="flex border border-rule">
-            {VARIANTS.map((v, i) => {
-              const on = variant === v.value;
-              return (
-                <button
-                  key={v.value}
-                  onClick={() => setVariant(v.value)}
-                  aria-pressed={on}
-                  className={`px-2 py-[3px] disabled:opacity-50 ${i > 0 ? "border-l border-rule" : ""} ${
-                    on
-                      ? v.value === "normal"
-                        ? "bg-ink text-paper"
-                        : "bg-fallback text-white"
-                      : "text-graphite hover:bg-wash"
-                  }`}
-                >
-                  {v.label}
-                </button>
-              );
-            })}
-          </div>
+          {VARIANTS.map((v) => (
+            <button
+              key={v.value}
+              onClick={() => setVariant(v.value)}
+              aria-pressed={variant === v.value}
+              className={optionCls(variant === v.value)}
+            >
+              {v.label}
+            </button>
+          ))}
         </fieldset>
 
         <button
           role="switch"
           aria-checked={turbo}
           onClick={() => setTurbo(!turbo)}
-          className="flex items-center gap-2 text-muted hover:text-ink"
+          title="Skip the 250 ms pause the demo adds between steps"
+          className={optionCls(turbo)}
         >
-          <span aria-hidden className="flex size-3.5 items-center justify-center border border-graphite">
-            {turbo && <span className="size-2 bg-ink" />}
-          </span>
-          <span className={turbo ? "text-ink" : undefined}>Turbo</span>
+          Turbo
         </button>
 
-        <label className="flex items-center gap-2.5 text-muted">
+        <label className="ml-auto flex items-center gap-2.5 text-muted">
           <span>Threshold</span>
           <input
             type="range"
-            className="rx-range w-16"
+            className="rx-range w-12"
             min={0.8}
             max={0.99}
             step={0.01}
@@ -131,7 +127,7 @@ export function Controls({
             onChange={(e) => setThreshold(Number(e.target.value))}
             disabled={running}
           />
-          <span className="tnum font-mono text-[12px] font-medium text-ink">{threshold.toFixed(2)}</span>
+          <span className="tnum font-mono text-[12.5px] text-ink">{threshold.toFixed(2)}</span>
         </label>
       </div>
     </section>
